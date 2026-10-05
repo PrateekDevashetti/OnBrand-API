@@ -29,10 +29,14 @@ export function brandBrief(b: BrandSystem): string {
 
 export async function enhancePrompt(b: BrandSystem, prompt: string): Promise<string> {
   const brief = brandBrief(b);
-  if (!llmAvailable()) return `${prompt.trim()}\n\nFollow this brand system exactly:\n\n${brief}`;
+  const fallback = () => `${prompt.trim()}\n\nFollow this brand system exactly — use only these values:\n\n${brief}`;
+  if (!llmAvailable()) return fallback();
   return complete(
     "You are OnBrand's Prompt Enhancer. Rewrite a user's design prompt into a 'golden prompt' a senior designer or an AI design agent can execute to produce an on-brand result. Keep the user's intent and scope; weave in the brand's exact colours (hex), type stacks and sizes, layout rhythm, surfaces, components, motion and voice. Be concrete and structured (short sections, bullet points). Do not invent brand values that are not in the brief. Output only the enhanced prompt.",
     `User prompt:\n${prompt}\n\nBrand brief:\n${brief}`,
     "low",
-  );
+  ).catch((e) => {
+    console.error("[onbrand] prompt enhancer LLM call failed, using deterministic brief:", (e as Error).message);
+    return fallback();
+  });
 }

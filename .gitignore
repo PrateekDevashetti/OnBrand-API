@@ -14,3 +14,4 @@ apps/web/public/storage/
 tsconfig.tsbuildinfo
 qa/shots/
 .claude/worktrees/
+qa/compare/
