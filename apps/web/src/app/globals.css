@@ -174,3 +174,13 @@ body {
   white-space: pre;
   color: #8f918d;
 }
+
+/* Hairline figures themed to OnBrand: cream strokes on the charcoal card */
+.hl-onbrand {
+  --hairline-plate: #191919;
+  --hairline-hi: #f3f6f0;
+  --hairline-edge: #c9cbc7;
+  --hairline-mid: #8b8d89;
+  --hairline-lo: #4a4b49;
+  --hairline-stroke: 1;
+}

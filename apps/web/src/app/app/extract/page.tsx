@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ExtractForm } from "@/components/extract/ExtractForm";
 
 export const metadata = { title: "Brand Extraction" };
@@ -11,7 +12,9 @@ export default function ExtractPage() {
         Any brand&apos;s design system, structured for agents. Paste a URL and get logos, colors, type, and motion back as data.
       </p>
       <div className="mt-[56px] w-full">
-        <ExtractForm />
+        <Suspense>
+          <ExtractForm />
+        </Suspense>
       </div>
     </div>
   );

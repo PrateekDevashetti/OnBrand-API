@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Segmented } from "../ui/Segmented";
 import { InfoTip } from "../ui/Tooltip";
 
 export function ExtractForm() {
   const router = useRouter();
-  const [url, setUrl] = useState("");
+  const params = useSearchParams();
+  const [url, setUrl] = useState(params.get("url") ?? "");
   const [depth, setDepth] = useState<"deep" | "light">("deep");
   const [source, setSource] = useState<"cached" | "fresh">("cached");
   const [pages, setPages] = useState<"all" | "single">("single");
