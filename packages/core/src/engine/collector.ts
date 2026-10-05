@@ -53,6 +53,13 @@ export const COLLECTOR_SOURCE = String.raw`
     return t.replace(/\s+/g, ' ').trim();
   };
 
+  // Page canvas: body/html backgrounds paint the whole viewport but aren't in 'body *'.
+  {
+    const bodyBg = toHex(getComputedStyle(document.body).backgroundColor);
+    const htmlBg = toHex(getComputedStyle(document.documentElement).backgroundColor);
+    const canvas = bodyBg && bodyBg.a > 0.5 ? getComputedStyle(document.body).backgroundColor : htmlBg && htmlBg.a > 0.5 ? getComputedStyle(document.documentElement).backgroundColor : 'rgb(255, 255, 255)';
+    addColor(canvas, 12, 'bg');
+  }
   const all = Array.from(document.querySelectorAll('body *')).slice(0, MAX_ELEMENTS * 3);
   let processed = 0;
   for (const el of all) {
