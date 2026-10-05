@@ -83,7 +83,12 @@ export async function capturePage(url: string, opts: CrawlOptions = {}): Promise
     await page.waitForLoadState("networkidle", { timeout: 12_000 }).catch(() => {});
     await dismissOverlays(page);
     await page.waitForTimeout(800);
-    const hero = await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null);
+    let hero = await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null);
+    // Intro loaders / splash screens render as a near-uniform frame (a tiny JPEG): give them time and re-shoot.
+    for (let i = 0; i < 2 && hero && hero.length < 30_000; i++) {
+      await page.waitForTimeout(2500);
+      hero = (await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null)) ?? hero;
+    }
     await autoScroll(page);
     await page.waitForLoadState("networkidle", { timeout: 6_000 }).catch(() => {});
     await page.evaluate(`(async () => { try { await document.fonts.ready } catch (e) {} })()`);

@@ -6,7 +6,7 @@ import type { StyleResult } from "@onbrand/core/search";
 import { Select } from "../ui/Select";
 import { SearchIcon } from "../ui/icons";
 import { Coverflow } from "../Coverflow";
-import { FeaturedCard, ResultCard } from "./StyleCard";
+import { FeaturedMasonry, ResultCard } from "./StyleCard";
 
 const FACETS: Record<string, string[]> = {
   Style: ["Minimal", "Bold", "Editorial", "Fun"],
@@ -139,9 +139,9 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
               </button>
             </div>
           </div>
-          <div className="mt-[20px] rounded-[14px] bg-card px-[30px] pt-[30px] pb-[34px]">
+          <div className="mt-[20px] rounded-[14px] bg-card px-[30px] pt-[30px] pb-[24px]">
             {sorted.length ? (
-              <div className="grid grid-cols-3 gap-x-[28px] gap-y-[32px]">
+              <div className="grid grid-cols-3 gap-x-[28px] gap-y-[26px]">
                 {sorted.map((s) => (
                   <ResultCard key={s.id} s={s} />
                 ))}
@@ -171,10 +171,8 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
               ))}
             </div>
           )}
-          <div className={`mt-[48px] grid grid-cols-4 gap-x-[20px] gap-y-[30px] transition-all duration-500 ${busy ? "pointer-events-none opacity-40 blur-[6px]" : ""}`}>
-            {featured.map((s) => (
-              <FeaturedCard key={s.id} s={s} />
-            ))}
+          <div className={`mt-[48px] transition-all duration-500 ${busy ? "pointer-events-none opacity-40 blur-[6px]" : ""}`}>
+            <FeaturedMasonry items={featured} />
           </div>
           {busy && (
             <div className="absolute inset-x-0 top-[180px] flex justify-center">

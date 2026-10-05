@@ -16,7 +16,7 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
   const data = await getStyle(id);
   if (!data) notFound();
   const { style: s, raw, similar } = data;
-  const pageTags = [...raw.websiteTypes, ...raw.industries, ...raw.styles, ...raw.layouts].filter((t, i, a) => a.indexOf(t) === i).slice(0, 6);
+  const pageTags = s.tags;
   return (
     <div className="mx-auto w-[1156px] max-w-[calc(100%-64px)] pt-[26px] pb-[40px]">
       <Link href="/app/search" aria-label="Back" className="inline-block text-cream hover:opacity-70">
@@ -29,7 +29,7 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
         <div>
           <h1 className="text-[33px] leading-none text-cream">{s.domain}</h1>
           <div className="mt-[40px] flex flex-wrap gap-[10px]">
-            {s.tags.map((t) => (
+            {s.tags.slice(0, 3).map((t) => (
               <Tag key={t} t={t} />
             ))}
           </div>
@@ -77,7 +77,7 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
               {x.screenshot && <img src={x.screenshot} alt={x.name} loading="lazy" className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]" />}
             </div>
             <div className="mt-[16px] text-[14px] text-cream">{x.name}</div>
-            <div className="mt-[8px] truncate text-[11.5px] text-dim">{x.tags.join(" · ")}</div>
+            <div className="mt-[8px] truncate text-[11.5px] text-dim">{x.tags.slice(0, 3).join(" · ")}</div>
           </Link>
         ))}
       </div>

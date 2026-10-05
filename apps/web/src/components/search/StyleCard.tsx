@@ -19,22 +19,42 @@ export function StyleThumb({ s, h, badge }: { s: StyleResult; h: number; badge?:
   );
 }
 
-export function FeaturedCard({ s }: { s: StyleResult }) {
+export function FeaturedCard({ s, h = 172 }: { s: StyleResult; h?: number }) {
   return (
     <Link href={`/app/styles/${s.id}`} className="group block">
-      <StyleThumb s={s} h={172} />
-      <div className="mt-[16px] text-[13.5px] text-cream">{s.label || s.name}</div>
-      <div className="mt-[8px] text-[11.5px] text-dim">{s.tags.join(" | ")}</div>
+      <StyleThumb s={s} h={h} />
+      <div className="mt-[11px] text-[14px] leading-[18px] text-cream">{s.label || s.name}</div>
+      <div className="mt-[8px] text-[12px] leading-[16px] text-dim">{(s.traits?.length ? s.traits : s.tags).join(" | ")}</div>
     </Link>
+  );
+}
+
+/** Crop heights for the landing masonry (274px-wide cards), repeating per row. */
+const MASONRY = [174, 174, 139, 169, 172, 140, 171, 169];
+
+/** Four independent columns; each card keeps its own crop height so rows don't align. */
+export function FeaturedMasonry({ items }: { items: StyleResult[] }) {
+  const cols: { s: StyleResult; h: number }[][] = [[], [], [], []];
+  items.forEach((s, i) => cols[i % 4].push({ s, h: MASONRY[i % MASONRY.length] }));
+  return (
+    <div className="grid grid-cols-4 items-start gap-x-[20px]">
+      {cols.map((col, c) => (
+        <div key={c} className="flex flex-col gap-[56px]">
+          {col.map(({ s, h }) => (
+            <FeaturedCard key={s.id} s={s} h={h} />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 
 export function ResultCard({ s, sep = " | " }: { s: StyleResult; sep?: string }) {
   return (
     <Link href={`/app/styles/${s.id}`} className="group block">
-      <StyleThumb s={s} h={218} badge={s.match} />
-      <div className="mt-[16px] text-[14.5px] text-cream">{s.name}</div>
-      <div className="mt-[8px] truncate text-[12px] text-dim">{s.tags.join(sep)}</div>
+      <StyleThumb s={s} h={216} badge={s.match} />
+      <div className="mt-[12px] text-[14.5px] leading-[18px] text-cream">{s.name}</div>
+      <div className="mt-[6px] truncate text-[12px] leading-[16px] text-dim">{s.tags.slice(0, 3).join(sep)}</div>
     </Link>
   );
 }
