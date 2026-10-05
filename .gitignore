@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+dist
+.env
+.env.local
+.env*.local
+*.log
+.DS_Store
+.vercel
+.turbo
+storage/
+apps/web/public/storage/
+tsconfig.tsbuildinfo
+qa/shots/
+.claude/worktrees/

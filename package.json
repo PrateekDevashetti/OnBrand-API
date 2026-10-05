@@ -1,0 +1,26 @@
+{
+  "name": "onbrand-api",
+  "private": true,
+  "version": "0.1.0",
+  "description": "OnBrand API by Canopy Labs — the brand layer for AI agents.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @onbrand/web",
+    "dev:worker": "npm run dev -w @onbrand/worker",
+    "build": "npm run build -w @onbrand/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:push": "npm run db:push -w @onbrand/core",
+    "db:seed": "npm run db:seed -w @onbrand/core"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "allowScripts": {
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true
+  }
+}
