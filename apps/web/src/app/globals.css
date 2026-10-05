@@ -239,3 +239,37 @@ textarea:focus-visible {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Landing: thumbnails drift toward the search bar and pass behind it */
+.drift-card {
+  left: -62px;
+  top: -39px;
+  opacity: 0;
+  animation: drift-in 9.6s cubic-bezier(0.45, 0.05, 0.35, 1) infinite;
+}
+@keyframes drift-in {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--side) * min(40vw, 440px)), var(--y)) rotate(var(--rot)) scale(1);
+  }
+  12% {
+    opacity: 0.95;
+  }
+  52% {
+    opacity: 0.95;
+    transform: translate(calc(var(--side) * 250px), calc(var(--y) * 0.4)) rotate(calc(var(--rot) * 0.4)) scale(0.9);
+  }
+  70% {
+    opacity: 0;
+    transform: translate(calc(var(--side) * 60px), 0) rotate(0deg) scale(0.72);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.7);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-drift {
+    display: none;
+  }
+}

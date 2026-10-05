@@ -176,7 +176,7 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
           </div>
           {busy && (
             <div className="absolute inset-x-0 top-[180px] flex justify-center">
-              <Coverflow images={featured.map((f) => f.screenshot).filter(Boolean) as string[]} />
+              <Coverflow />
             </div>
           )}
         </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { featuredStyles, PLANS, ANNUAL_DISCOUNT, PRICING } from "@onbrand/core";
 import { Banner } from "@/components/landing/Banner";
 import { HeroInput } from "@/components/landing/HeroInput";
+import { HeroDrift } from "@/components/landing/HeroDrift";
 import { Manifesto, Endpoints, BeforeAfter, ProductTour, IntegrateSection, PricingSection, Faq } from "@/components/landing/Sections";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +56,7 @@ export default async function Landing() {
           </span>
         </div>
         {/* Decorative layer is laid out on a 1920px stage and scales down with the viewport; hidden when it would crowd the input. */}
-        <div className="hero-deco pointer-events-none absolute top-0 left-0 h-full w-[1920px] max-[1359px]:hidden" aria-hidden="true">
+        <div className="hero-deco pointer-events-none absolute top-0 left-0 z-[15] h-full w-[1920px] max-[1359px]:hidden" aria-hidden="true">
           {shots[0] && (
             <div className="absolute top-[33px] left-0 h-[192px] w-[71px] overflow-hidden rounded-r-[2px] opacity-90">
               <img src={shots[0]} alt="" className="h-full w-[300px] max-w-none object-cover object-left-top" />
@@ -85,7 +86,8 @@ export default async function Landing() {
             ))}
           </pre>
         </div>
-        <div className="absolute top-[426px] right-0 left-0 px-6 max-md:top-[170px]">
+        <HeroDrift shots={shots.slice(2, 8)} />
+        <div className="absolute top-[426px] right-0 left-0 z-20 px-6 max-md:top-[170px]">
           <HeroInput />
           <h1 className="mt-[81px] text-center text-[32px] max-md:text-[26px] leading-none tracking-[-0.01em] text-cream">Make your agents be on brand</h1>
           <p className="mx-auto mt-[20px] max-w-[720px] text-center text-[17px] leading-[1.6] text-[#8b8d89]">
