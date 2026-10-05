@@ -36,7 +36,9 @@ export function clusterColors(signals: PageSignals): ColorFamily[] {
   for (const c of sorted) {
     const p = parse(c.hex);
     if (!p) continue;
-    const hit = fams.find((f) => de(parse(f.hex)!, p) < 6);
+    // Neutrals cluster tighter: #111 vs #1E1E1E are distinct design tokens, not shades of one.
+    const neutral = (toLch(p)?.c ?? 0) < 8;
+    const hit = fams.find((f) => de(parse(f.hex)!, p) < (neutral && f.chroma < 8 ? 3.5 : 6));
     if (hit) {
       hit.weight += c.weight;
       hit.role.text += c.text;
@@ -56,6 +58,17 @@ export function clusterColors(signals: PageSignals): ColorFamily[] {
       });
     }
   }
+  // Chromatic design tokens declared as CSS custom properties are brand colours even when the
+  // captured viewport never paints them (e.g. a link blue used only on sub-pages).
+  for (const v of signals.cssVars ?? []) {
+    if (!/colou?r|brand|primary|accent|blue|red|green|link/i.test(v.name)) continue;
+    const p = parse(v.value.trim());
+    const lch = p && toLch(p);
+    if (!p || !lch || (lch.c ?? 0) <= 22 || ("alpha" in p && (p.alpha ?? 1) < 0.5)) continue;
+    const hex = formatHex(p)!.toUpperCase();
+    if (fams.some((f) => de(parse(f.hex)!, p) < 6)) continue;
+    fams.push({ hex, weight: 0.05, role: { text: 0, bg: 0, border: 0 }, members: [hex], lightness: Math.round(lch.l ?? 0), chroma: Math.round(lch.c ?? 0), tone: classifyTone(hex) });
+  }
   // Accents are rare by area but matter; keep any chromatic family even with low weight.
   return fams.sort((a, b) => b.weight - a.weight).slice(0, 16);
 }
@@ -64,7 +77,8 @@ export function clusterColors(signals: PageSignals): ColorFamily[] {
 export function ramp(hex: string): string[] {
   const c = toLch(parse(hex));
   if (!c) return [];
-  const steps = c.l > 60 ? [-4, -8, -14, -22] : [4, 8, 13, 20];
+  // Light colours ramp lightest-first (white, then deeper tints); dark colours ramp four subtle lifts.
+  const steps = c.l > 60 ? [4, -6, -12] : [3, 6, 9, 13];
   return steps.map((d) => formatHex({ ...c, l: Math.max(0, Math.min(100, c.l + d)) })!.toUpperCase());
 }
 

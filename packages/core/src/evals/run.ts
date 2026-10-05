@@ -27,7 +27,8 @@ async function until<T>(load: () => Promise<T | undefined>, done: (t: T) => bool
 
 function scoreBrand(b: BrandSystem, g: (typeof GOLDEN)[number]) {
   const all = [...(b.colors?.baseline ?? []), ...(b.colors?.secondary ?? []), ...(b.colors?.others ?? [])].flatMap((c) => [c.hex, ...(c.shades ?? [])]);
-  const colorHits = g.colors.filter((exp) => all.some((h) => { const p = parse(exp), q = parse(h); return p && q && de(p, q) < 6; }));
+  // A golden entry may list alternatives ("#old|#new") when a brand refreshes its palette.
+  const colorHits = g.colors.filter((exp) => exp.split("|").some((alt) => all.some((h) => { const p = parse(alt), q = parse(h); return p && q && de(p, q) < 6; })));
   const fams = (b.typography?.families ?? []).map((f) => f.family.toLowerCase());
   const fontHits = g.fonts.filter((f) => fams.some((x) => x.includes(f.toLowerCase())));
   const sectionKeys = ["identity", "colors", "typography", "surfaces", "layout", "elevation", "interactions", "structure", "dataDisplay", "motion", "navigation", "icons", "sections", "media"] as const;

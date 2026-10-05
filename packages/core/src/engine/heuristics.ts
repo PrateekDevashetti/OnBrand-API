@@ -15,7 +15,8 @@ const toLch = converter("lch");
 // ---------- colour naming ----------
 
 function hueName(h: number) {
-  const names: [number, string][] = [[12, "Red"], [40, "Orange"], [62, "Amber"], [95, "Yellow"], [150, "Green"], [190, "Teal"], [230, "Cyan"], [275, "Blue"], [305, "Violet"], [340, "Magenta"], [360, "Red"]];
+  // LCH hue angles (#FF0000≈41°, #FFA500≈71°, #FFFF00≈100°, #00AA00≈134°, #00CCCC≈196°, #0000EE≈301°, #8000FF≈308°, #FF00FF≈327°).
+  const names: [number, string][] = [[25, "Rose"], [58, "Red"], [85, "Orange"], [115, "Yellow"], [170, "Green"], [230, "Teal"], [260, "Cyan"], [305, "Blue"], [318, "Violet"], [345, "Magenta"], [360, "Rose"]];
   return names.find(([lim]) => h <= lim)![1];
 }
 
@@ -92,7 +93,11 @@ export function heuristicColors(capture: Capture) {
   const seen = new Set<string>();
   const toColor = (f: ColorFamily, i: number): Color => {
     let name = colorName(f.hex);
-    if (seen.has(name)) name = `${name} ${i + 1}`;
+    if (seen.has(name)) {
+      const c = toLch(parse(f.hex));
+      const alt = `${(c?.h ?? 0) > 40 && (c?.h ?? 0) < 140 && (c?.c ?? 0) > 1.5 ? "Warm" : "Cool"} ${name.split(" ").pop()}`;
+      name = seen.has(alt) ? `${name} ${i + 1}` : alt;
+    }
     seen.add(name);
     return {
       name,
@@ -100,15 +105,27 @@ export function heuristicColors(capture: Capture) {
       tone: f.tone,
       description: describeColor(f, mode, i),
       usage: colorUsage(f, s),
-      shades: f.members.length >= 4 ? f.members.slice(1, 5) : [...f.members.slice(1), ...ramp(f.hex)].slice(0, Math.max(3, f.members.length - 1)),
+      shades: [],
     };
   };
   const colors = fams.map(toColor);
   const accents = colors.filter((c) => c.tone === "Accent");
   const neutrals = colors.filter((c) => c.tone !== "Accent");
+  // Secondary neutrals: surfaces before text colours, each group by visual weight.
+  const famOf = new Map(fams.map((f) => [f.hex, f]));
+  const isSurface = (c: Color) => roleOf(famOf.get(c.hex)!) === "surface";
+  const rest = neutrals.slice(accents.length ? 1 : 2);
+  const secondary = [...rest.filter(isSurface), ...rest.filter((c) => !isSurface(c))].slice(0, 5);
+  const baseline = [...neutrals.slice(0, 1), ...accents.slice(0, 1), ...(accents.length ? [] : neutrals.slice(1, 2))];
+  // Tint/shade ramps are shown for the lead surface of each tier (the colours a designer extends).
+  for (const lead of [baseline[0], secondary[0]]) {
+    if (!lead) continue;
+    const f = famOf.get(lead.hex)!;
+    lead.shades = [...new Set([...f.members.slice(1), ...ramp(lead.hex)])].slice(0, f.lightness > 60 ? 3 : 4);
+  }
   return {
-    baseline: [...neutrals.slice(0, 1), ...accents.slice(0, 1), ...(accents.length ? [] : neutrals.slice(1, 2))],
-    secondary: neutrals.slice(accents.length ? 1 : 2, 6),
+    baseline,
+    secondary,
     others: [...accents.slice(1), ...neutrals.slice(6)],
     notes: [
       `${mode === "dark" ? "Dark" : "Light"}-first palette built on ${neutrals.slice(0, 2).map((c) => `${c.name} (${c.hex})`).join(" and ")}.`,
@@ -118,8 +135,10 @@ export function heuristicColors(capture: Capture) {
 }
 
 function modeOf(fams: ColorFamily[]) {
-  const bg = [...fams].sort((a, b) => b.role.bg - a.role.bg)[0];
-  return bg && bg.lightness < 45 ? "dark" : "light";
+  // Total painted surface area of dark vs light families (a dark site often uses several near-blacks).
+  const dark = fams.filter((f) => f.lightness < 45).reduce((a, f) => a + f.role.bg, 0);
+  const light = fams.filter((f) => f.lightness >= 45).reduce((a, f) => a + f.role.bg, 0);
+  return dark > light ? "dark" : "light";
 }
 
 // ---------- identity ----------
@@ -270,6 +289,22 @@ function sectionLayout(x: SectionSignal, i: number) {
   return i === 0 ? "Centered hero" : "Text block";
 }
 
+// ---------- brand name ----------
+
+/** The name the brand uses for itself: og:site_name, else logo alt text, else the title segment matching the host. */
+export function brandName(s: PageSignals, host: string): string {
+  const label = host.split(".")[0];
+  const PAGE_WORDS = /\s+(pricing|plans|blog|careers|jobs|about( us)?|contact( us)?|home|homepage|docs|documentation|changelog|case stud(y|ies)|customers|news|press)$/i;
+  const tidy = (t: string) => t.trim().replace(/\s+/g, " ").replace(PAGE_WORDS, "");
+  const caps = (t: string) => (t === t.toUpperCase() && t.length > 3 ? t[0] + t.slice(1).toLowerCase() : t);
+  if (s.siteName && s.siteName.length <= 40) return tidy(s.siteName);
+  const alt = tidy(s.logo?.alt ?? "").replace(/\s*(logo|home|homepage)$/i, "");
+  if (alt && alt.length <= 30 && label.toLowerCase().includes(alt.toLowerCase().replace(/\W/g, "").slice(0, 4))) return caps(alt);
+  const seg = (s.title || "").split(/\s[|–—:·-]\s/).map(tidy).find((t) => t.length <= 30 && label.toLowerCase().startsWith(t.toLowerCase().replace(/\W/g, "").slice(0, 4)));
+  if (seg) return caps(seg);
+  return label.replace(/^\w/, (c) => c.toUpperCase());
+}
+
 // ---------- groups ----------
 
 export function heuristicGroup(key: GroupKey, capture: Capture, d: Digest): unknown {
@@ -282,7 +317,7 @@ export function heuristicGroup(key: GroupKey, capture: Capture, d: Digest): unkn
   switch (key) {
     case "identity": {
       const host = new URL(s.url).hostname.replace(/^www\./, "");
-      const name = s.siteName || host.split(".")[0].replace(/^\w/, (c) => c.toUpperCase());
+      const name = brandName(s, host);
       const surface = fams.find((f) => roleOf(f) === "surface") ?? fams[0];
       const text = fams.find((f) => roleOf(f) === "text" && f.hex !== surface?.hex);
       const accent = fams.find((f) => f.tone === "Accent");

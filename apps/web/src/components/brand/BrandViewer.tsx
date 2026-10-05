@@ -42,6 +42,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
   const [data, setData] = useState(initial);
   const [active, setActive] = useState("overview");
   const [toast, setToast] = useState("");
+  const [atTop, setAtTop] = useState(true);
   const running = data.status === "queued" || data.status === "running";
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
       let cur = "overview";
       for (const s of secs) if (s.getBoundingClientRect().top < 180) cur = s.dataset.section!;
       setActive(cur);
+      setAtTop((panel instanceof HTMLElement ? panel.scrollTop : window.scrollY) < 8);
     };
     panel.addEventListener("scroll", onScroll, { passive: true });
     return () => panel.removeEventListener("scroll", onScroll);
@@ -96,7 +98,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
   );
 
   return (
-    <div className={`relative flex flex-col pr-[18px] pl-[17px] ${shared ? "h-[calc(100vh-72px)]" : "h-full"}`}>
+    <div className={`relative flex flex-col pr-[18px] pl-[17px] ${atTop ? "pt-[12px]" : ""} ${shared ? "h-[calc(100vh-72px)]" : "h-full"}`}>
       <div className="flex h-[40px] shrink-0 items-center justify-between">
         {shared ? <span /> : (
           <Link href={backHref} aria-label="Back" className="pl-[15px] text-cream transition-opacity hover:opacity-70">
@@ -110,16 +112,16 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
         )}
       </div>
       <div className="mt-[10px] flex min-h-0 flex-1 items-stretch gap-[10px]">
-        <nav className="w-[191px] shrink-0 overflow-y-auto rounded-t-[2px] bg-[#222222] px-[12px] pt-[2px] pb-[24px]">
+        <nav className={`w-[191px] shrink-0 overflow-y-auto rounded-t-[2px] bg-[#222222] px-[12px] pb-[24px] ${atTop ? "pt-[18px]" : "pt-0"}`}>
           {NAV.map((n, i) =>
             n === "divider" ? (
-              <div key={i} className="mx-[12px] my-[18px] h-px w-[136px] bg-[#3a3a39]" />
+              <div key={i} className="mx-[12px] mt-[15px] mb-[21px] h-px w-[136px] bg-[#3a3a39]" />
             ) : (
               <button
                 key={n.key}
                 type="button"
                 onClick={() => go(n.key)}
-                className={`block h-[34px] w-full rounded-[4px] px-[12px] text-left text-[14px] transition-colors ${active === n.key ? "bg-[#2c2c2b] text-cream" : "text-dim hover:text-cream"}`}
+                className={`mb-[6px] block h-[34px] w-full rounded-[4px] px-[12px] text-left text-[14px] transition-colors ${active === n.key ? "bg-[#2c2c2b] text-cream" : "text-dim hover:text-cream"}`}
               >
                 {n.label}
               </button>

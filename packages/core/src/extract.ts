@@ -165,7 +165,8 @@ export async function runExtraction(id: string, maxPages?: number) {
     brand.icons = { ...brand.icons, svgs: s.icons.slice(0, 16).map((i) => ({ name: i.label || "icon", svg: i.svg })) };
     const allColors = [...brand.colors.baseline, ...brand.colors.secondary, ...brand.colors.others];
     brand.tokens = buildTokens(s, allColors.map((c) => ({ name: c.name, hex: c.hex })), fontFamilies(s));
-    const company = brand.identity.companyName || companyFromDomain(domain);
+    // History lists the domain's company; the brand viewer shows the name the brand uses for itself.
+    const company = companyFromDomain(domain);
     await db
       .update(extractions)
       .set({

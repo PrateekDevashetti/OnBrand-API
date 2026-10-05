@@ -4,7 +4,7 @@ export type Golden = { url: string; colors: string[]; fonts: string[]; mode: "da
 export const GOLDEN: Golden[] = [
   { url: "https://tastelabs.com", colors: ["#1E1E1E", "#F5F7F2", "#111111"], fonts: ["Matter", "Azeret"], mode: "dark", minSections: 3 },
   { url: "https://linear.app", colors: ["#08090A", "#F7F8F8"], fonts: ["Inter"], mode: "dark", minSections: 4 },
-  { url: "https://stripe.com", colors: ["#635BFF", "#0A2540"], fonts: ["sohne"], mode: "light", minSections: 4 },
+  { url: "https://stripe.com", colors: ["#635BFF|#533AFD", "#0A2540"], fonts: ["sohne"], mode: "light", minSections: 4 },
   { url: "https://vercel.com", colors: ["#000000", "#FFFFFF"], fonts: ["Geist"], mode: "light", minSections: 3 },
 ];
 

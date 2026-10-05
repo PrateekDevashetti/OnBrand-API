@@ -101,14 +101,14 @@ export function OverviewSection({
   const id = brand?.identity;
   const statusCls = status === "completed" ? "bg-[#17331f] text-ok" : status === "failed" ? "bg-[#3a1717] text-bad" : "bg-[#3a3017] text-warn";
   return (
-    <section id="sec-overview" data-section="overview" className="scroll-mt-4 rounded-[2px] bg-[#222222] px-[21px] pt-[22px] pb-[24px]">
+    <section id="sec-overview" data-section="overview" className="scroll-mt-4 rounded-[2px] bg-[#222222] px-[21px] pt-[20px] pb-[24px]">
       <div className="flex items-center justify-between">
         <h2 className="text-[18px] text-cream">Overview</h2>
         <span className={`rounded-[4px] px-[10px] py-[5px] text-[12px] capitalize ${statusCls}`}>{status === "running" || status === "queued" ? "Extracting" : status}</span>
       </div>
       <div className="px-[3px]">
-        <h3 className="mt-[22px] text-[34px] leading-none text-cream">{id?.companyName || new URL(url).hostname.replace(/^www\./, "")}</h3>
-        <div className="mt-[18px] font-mono text-[15px] text-dim">{url}</div>
+        <h3 className="mt-[20px] text-[32px] leading-none text-cream">{id?.companyName || new URL(url).hostname.replace(/^www\./, "")}</h3>
+        <div className="mt-[12px] font-mono text-[15px] text-dim">{url}</div>
         {id?.pageTags?.length ? (
           <div className="mt-[18px] flex flex-wrap gap-[8px]">
             {id.pageTags.map((t) => (
@@ -611,24 +611,23 @@ export function InteractionsSection({ brand }: { brand: Partial<BrandSystem> }) 
             // Previews always render on the cream stage, exactly as measured (light outline buttons read on hover).
             const darkStage = false;
             return (
-              <Card key={i} className="pt-[22px]">
+              <Card key={i} className="pt-[16px]">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-[15px] text-dim">{b.name}</div>
-                    <p className="mt-[8px] text-[13px] text-dim">{b.description}</p>
+                    <div className="text-[14px] text-dim">{b.name}</div>
+                    <p className="mt-[5px] text-[12.5px] text-dim">{b.description}</p>
                   </div>
                   <span className="shrink-0 text-[12px] text-mute">radius: {b.radius}</span>
                 </div>
-                <div className={`mt-[14px] flex h-[68px] items-center gap-[10px] rounded-[6px] px-[16px] ${darkStage ? "bg-[#0e0e0e]" : "bg-cream"}`}>
+                <div className={`mt-[12px] flex h-[69px] items-center gap-[10px] rounded-[6px] px-[16px] ${darkStage ? "bg-[#0e0e0e]" : "bg-cream"}`}>
                   <span className="inline-flex items-center whitespace-nowrap" style={def}>
                     Default
                   </span>
                   <span className="inline-flex items-center whitespace-nowrap" style={hov}>
                     Hover
                   </span>
-                  <span className={`ml-auto font-mono text-[10px] ${darkStage ? "text-mute" : "text-[#8b8d89]"}`}>default · hover</span>
                 </div>
-                <Eyebrow className="mt-[16px] mb-[10px] text-[11px]">Sizes</Eyebrow>
+                <Eyebrow className="mt-[10px] mb-[7px] text-[11px]">Sizes</Eyebrow>
                 <Chips items={b.sizes} />
               </Card>
             );
