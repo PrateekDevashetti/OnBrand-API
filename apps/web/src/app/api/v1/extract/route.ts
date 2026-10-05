@@ -1,8 +1,8 @@
 import { logged } from "@/lib/logged";
 import { z } from "zod";
-import { createExtraction, getExtraction, listExtractions } from "@onbrand/core";
+import { createExtraction, getExtraction, listExtractions, extractionTotals, parseSections, MAX_SITE_PAGES } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
-import { json, unauthorized, handleError } from "@/lib/http";
+import { json, unauthorized, handleError, apiError } from "@/lib/http";
 import { serializeExtraction } from "@/lib/serialize";
 
 export const maxDuration = 300;
@@ -13,7 +13,11 @@ const Body = z.object({
   cache: z.boolean().optional(),
   force: z.boolean().optional(),
   pages: z.enum(["single", "all"]).optional(),
-  max_pages: z.number().int().min(1).max(20).optional(),
+  /** Map mode: discover same-domain pages and extract each (alias of pages: "all"). */
+  map: z.boolean().optional(),
+  max_pages: z.number().int().min(1).max(MAX_SITE_PAGES).optional(),
+  /** Selective extraction. Omit or null for a full extraction. */
+  sections: z.array(z.string()).nullable().optional(),
 });
 
 async function handlePOST(req: Request) {
@@ -21,12 +25,17 @@ async function handlePOST(req: Request) {
     const actor = await getActor(req, "api");
     if (!actor) return unauthorized();
     const body = Body.parse(await req.json());
+    const sections = parseSections(body.sections);
+    const pages = body.map ? "all" : body.pages;
+    if (sections && pages === "all") return apiError(422, "selective_map_unsupported", "`sections` can't be combined with map mode. Extract a single URL, or omit `sections`.");
+    if (sections && body.depth === "deep") return apiError(422, "selective_deep_unsupported", "`sections` can't be combined with depth: \"deep\". Use light depth, or omit `sections`.");
     const row = await createExtraction(actor, {
       url: body.url,
-      depth: body.depth,
+      depth: sections ? "light" : body.depth,
       cache: body.force ? false : (body.cache ?? true),
-      pages: body.pages,
+      pages,
       maxPages: body.max_pages,
+      sections,
     });
     const wait = new URL(req.url).searchParams.get("wait") === "true";
     if (wait && row.status !== "completed") {
@@ -47,8 +56,11 @@ async function handleGET(req: Request) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const sp = new URL(req.url).searchParams;
-  const { rows, total } = await listExtractions(actor.userId, { q: sp.get("q") ?? undefined, status: sp.get("status") ?? undefined, limit: Number(sp.get("limit") ?? 20), offset: Number(sp.get("offset") ?? 0) });
-  return json({ data: rows, total });
+  const filters = { q: sp.get("q") ?? undefined, status: sp.get("status") ?? undefined, apiKeyId: sp.get("api_key_id") ?? undefined };
+  const limit = Math.max(1, Math.min(Number(sp.get("limit") ?? 20) || 20, 100));
+  const offset = Math.max(0, Number(sp.get("offset") ?? 0) || 0);
+  const [{ rows, total }, totals] = await Promise.all([listExtractions(actor.userId, { ...filters, limit, offset }), extractionTotals(actor.userId, filters)]);
+  return json({ data: rows, total, totals, limit, offset });
 }
 
 export const POST = logged("POST /v1/extract", handlePOST);

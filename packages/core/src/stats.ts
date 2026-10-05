@@ -127,3 +127,25 @@ export async function listAdherence(userId: string, opts: { q?: string; status?:
     columns: { report: false },
   });
 }
+
+/** Counts by outcome for the extraction list (ignores pagination). */
+export async function extractionTotals(userId: string, opts: { q?: string; status?: string; apiKeyId?: string } = {}) {
+  const conds = [eq(extractions.userId, userId), isNull(extractions.parentId)];
+  if (opts.status) conds.push(eq(extractions.status, opts.status));
+  if (opts.apiKeyId) conds.push(eq(extractions.apiKeyId, opts.apiKeyId));
+  if (opts.q) conds.push(or(ilike(extractions.url, `%${opts.q}%`), ilike(extractions.company, `%${opts.q}%`))!);
+  const rows = await db.select({ status: extractions.status, n: sql<number>`count(*)::int` }).from(extractions).where(and(...conds)).groupBy(extractions.status);
+  const get = (s: string) => rows.find((r) => r.status === s)?.n ?? 0;
+  return { completed: get("completed"), failed: get("failed"), in_progress: get("queued") + get("running") };
+}
+
+/** Adherence runs with total count for pagination. */
+export async function listAdherencePage(userId: string, opts: { q?: string; status?: string; limit?: number; offset?: number } = {}) {
+  const conds = [eq(adherenceRuns.userId, userId)];
+  if (opts.status) conds.push(eq(adherenceRuns.status, opts.status === "in_progress" ? "running" : opts.status));
+  if (opts.q) conds.push(or(ilike(adherenceRuns.designUrl, `%${opts.q}%`), ilike(adherenceRuns.referenceUrl, `%${opts.q}%`))!);
+  const where = and(...conds);
+  const rows = await db.query.adherenceRuns.findMany({ where, orderBy: [desc(adherenceRuns.createdAt)], limit: Math.max(1, Math.min(opts.limit ?? 20, 100)), offset: opts.offset ?? 0, columns: { report: false } });
+  const [{ total }] = await db.select({ total: sql<number>`count(*)::int` }).from(adherenceRuns).where(where);
+  return { rows, total };
+}

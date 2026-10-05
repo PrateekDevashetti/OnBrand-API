@@ -88,7 +88,7 @@ function digestFor(key: GroupKey, d: ReturnType<typeof digest>) {
   }
 }
 
-export type SynthOptions = { depth: "deep" | "light"; onGroupDone?: (key: GroupKey, result: Record<string, unknown>) => void | Promise<void> };
+export type SynthOptions = { depth: "deep" | "light"; /** Only these groups (selective extraction); all when omitted. */ groups?: GroupKey[] | null; onGroupDone?: (key: GroupKey, result: Record<string, unknown>) => void | Promise<void> };
 
 async function runGroup<K extends GroupKey>(key: K, capture: Capture, d: ReturnType<typeof digest>, opts: SynthOptions): Promise<GroupResult<K>> {
   const fallback = () => H.heuristicGroup(key, capture, d) as GroupResult<K>;
@@ -122,7 +122,7 @@ async function runGroup<K extends GroupKey>(key: K, capture: Capture, d: ReturnT
 
 export async function synthesize(capture: Capture, opts: SynthOptions) {
   const d = digest(capture.signals);
-  const keys = Object.keys(SECTION_GROUPS) as GroupKey[];
+  const keys = (Object.keys(SECTION_GROUPS) as GroupKey[]).filter((k) => !opts.groups || opts.groups.includes(k));
   const results = await Promise.all(
     keys.map(async (k) => {
       const r = await runGroup(k, capture, d, opts);

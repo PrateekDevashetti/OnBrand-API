@@ -2,6 +2,8 @@ import "server-only";
 import { authenticateApiKey, ensureUser, type Actor } from "@onbrand/core";
 
 export const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
+/** Single-user dev mode never runs in production unless explicitly opted in (private staging only). */
+export const devAuthEnabled = !clerkEnabled && (process.env.NODE_ENV !== "production" || process.env.ONBRAND_DEV_AUTH === "true");
 
 const DEV_USER = { id: "dev_user", email: "dev@onbrand.local", name: "OnBrand Developer" };
 
@@ -10,6 +12,7 @@ export type SessionUser = { id: string; email: string; name: string };
 /** The signed-in dashboard user (Clerk), or the local dev user when Clerk isn't configured. */
 export async function getSessionUser(): Promise<SessionUser | null> {
   if (!clerkEnabled) {
+    if (!devAuthEnabled) return null;
     await ensureUser(DEV_USER.id, DEV_USER);
     return DEV_USER;
   }

@@ -35,11 +35,11 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
     if (q.trim().length < 2) return;
     setBusy(true);
     setError("");
-    const res = await fetch("/api/v1/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q, depth, limit: Number(limit), filters: f }) });
+    const res = await fetch("/api/v1/search?raw=true", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q, depth, limit: Number(limit), filters: f }) });
     const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setError(j?.error?.message ?? "Search failed");
-    setResult({ id: j.id, query: j.query, depth: j.depth, tags: j.tags, results: j.results, filters: f });
+    setResult({ id: j.id, query: j.query, depth: j.depth === "deep" ? "deep" : "light", tags: j.tags, results: j.raw, filters: f });
     router.replace(`/app/search?s=${j.id}`, { scroll: false });
   }
 

@@ -33,9 +33,20 @@ export type AdherenceCategory = {
   fixes: string[];
 };
 
+/** A structured, mechanically-applicable fix. `action` is the discriminator. */
+export type AdherenceFix =
+  | { action: "snap_to_token"; category: AdherenceCategoryKey; property: "color" | "background-color" | "font-size" | "border-radius" | "max-width"; role?: string; from: string; to_value: string; token?: string; severity: number }
+  | { action: "add_color_token"; category: "colors" | "surfaces"; token: string; value: string; role: string; usage: string[]; severity: number }
+  | { action: "replace_font_family"; category: "typography"; property: "font-family"; role: string; from: string; to_value: string; severity: number }
+  | { action: "remove_off_brand_color"; category: "colors"; value: string; nearest_token: string; nearest_value: string; severity: number };
+
 export type AdherenceReport = {
   overall: { score: number; grade: string; summary: string };
   categories: AdherenceCategory[];
+  /** Prose guidance, worst-first, with exact target values. Max 20. */
+  recommendations?: string[];
+  /** Structured fixes, worst-first. Max 20. */
+  fixes?: AdherenceFix[];
   agentInstructions: string;
   reference: { extractionId: string; url: string; name: string };
   design: { extractionId: string; url: string; name: string };
@@ -150,8 +161,106 @@ function scoreLayout(ref: BrandSystem, des: BrandSystem) {
   return bp == null ? mw : Math.round(bp * 0.5 + mw * 0.5);
 }
 
+
+const tokenName = (name: string) => "--" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+function nearest(hex: string, pool: { name: string; hex: string }[]) {
+  const p = parse(hex);
+  let best = Infinity;
+  let hit = pool[0];
+  for (const c of pool) {
+    const q = parse(c.hex);
+    if (!p || !q) continue;
+    const v = de(p, q);
+    if (v < best) { best = v; hit = c; }
+  }
+  return { color: hit, delta: best };
+}
+
+const px = (v?: string) => {
+  const n = parseFloat(v ?? "");
+  return isNaN(n) ? null : n;
+};
+
+/** Deterministic, value-level fixes from the two brand systems, ordered worst-first. */
+export function buildFixes(ref: BrandSystem, des: BrandSystem): AdherenceFix[] {
+  const fixes: AdherenceFix[] = [];
+  const rc = colorsOf(ref);
+  const dc = colorsOf(des);
+  const baselineCount = ref.colors?.baseline?.length ?? 1;
+  if (rc.length && dc.length) {
+    // Design colours that don't belong to the reference palette: snap them to the nearest brand token.
+    dc.forEach((d, i) => {
+      const { color, delta } = nearest(d.hex, rc);
+      if (delta < 8) return;
+      const weight = i < (des.colors?.baseline?.length ?? 1) ? 2 : 1;
+      if (d.tone === "Accent" && delta > 20) fixes.push({ action: "remove_off_brand_color", category: "colors", value: d.hex, nearest_token: tokenName(color.name), nearest_value: color.hex, severity: Math.round(delta * weight) });
+      else fixes.push({ action: "snap_to_token", category: "colors", property: d.usage?.some((u) => /background|surface|section/i.test(u)) ? "background-color" : "color", role: d.usage?.[0], from: d.hex, to_value: color.hex, token: tokenName(color.name), severity: Math.round(delta * weight) });
+    });
+    // Reference brand colours the design never uses: add them as tokens.
+    rc.forEach((c, i) => {
+      const { delta } = nearest(c.hex, dc);
+      if (delta < 8) return;
+      fixes.push({ action: "add_color_token", category: "colors", token: tokenName(c.name), value: c.hex, role: c.tone, usage: c.usage ?? [], severity: Math.round(delta * (i < baselineCount ? 3 : 1)) });
+    });
+  }
+  // Typography: families per role, then the type scale.
+  const roles: [string, keyof BrandSystem["typography"]][] = [["headline", "titles"], ["body", "body"], ["label", "labels"]];
+  for (const [role, key] of roles) {
+    const r = (ref.typography?.[key] as BrandSystem["typography"]["titles"] | undefined)?.[0];
+    const d = (des.typography?.[key] as BrandSystem["typography"]["titles"] | undefined)?.[0];
+    if (!r || !d) continue;
+    if (fam(r.stack) !== fam(d.stack)) fixes.push({ action: "replace_font_family", category: "typography", property: "font-family", role, from: d.stack, to_value: r.stack, severity: role === "headline" ? 60 : 45 });
+    const rs = px(r.size), ds = px(d.size);
+    if (rs && ds && Math.abs(rs - ds) / rs > 0.08) fixes.push({ action: "snap_to_token", category: "typography", property: "font-size", role, from: d.size, to_value: r.size, severity: Math.round((Math.abs(rs - ds) / rs) * 100) });
+  }
+  // Button radius.
+  const rb = ref.interactions?.buttons?.[0], db_ = des.interactions?.buttons?.[0];
+  if (rb && db_) {
+    const rr = /border-radius:\s*([^;]+)/.exec(rb.defaultCss ?? "")?.[1]?.trim();
+    const dr = /border-radius:\s*([^;]+)/.exec(db_.defaultCss ?? "")?.[1]?.trim();
+    if (rr && dr && rr !== dr) fixes.push({ action: "snap_to_token", category: "surfaces", property: "border-radius", role: "primary button", from: dr, to_value: rr, severity: 25 });
+  }
+  // Content width.
+  const rmw = ref.layout?.grid?.maxWidth, dmw = des.layout?.grid?.maxWidth;
+  if (rmw && dmw && rmw !== dmw) fixes.push({ action: "snap_to_token", category: "layout", property: "max-width", from: dmw, to_value: rmw, severity: 20 });
+  return fixes.sort((a, b) => b.severity - a.severity).slice(0, 20);
+}
+
+function describeFix(f: AdherenceFix): string {
+  switch (f.action) {
+    case "snap_to_token":
+      return `Change ${f.role ? `the ${f.role} ` : ""}${f.property} from ${f.from} to ${f.to_value}${f.token ? ` (${f.token})` : ""}.`;
+    case "add_color_token":
+      return `Bring in the brand's ${f.role.toLowerCase()} colour ${f.value} as ${f.token}${f.usage.length ? ` for ${f.usage.slice(0, 2).join(" and ").toLowerCase()}` : ""}.`;
+    case "replace_font_family":
+      return `Set ${f.role} type in ${f.to_value} instead of ${f.from}.`;
+    case "remove_off_brand_color":
+      return `Remove the off-brand colour ${f.value}; the closest brand colour is ${f.nearest_value} (${f.nearest_token}).`;
+  }
+}
+
+/** Worst-first prose guidance: lowest-scoring categories first, value-level wherever possible. */
+export function buildRecommendations(categories: AdherenceCategory[], fixes: AdherenceFix[]): string[] {
+  const out: string[] = [];
+  const byCat = new Map<string, AdherenceFix[]>();
+  for (const f of fixes) byCat.set(f.category, [...(byCat.get(f.category) ?? []), f]);
+  for (const c of [...categories].sort((a, b) => a.score - b.score)) {
+    for (const f of byCat.get(c.key) ?? []) out.push(describeFix(f));
+    for (const f of c.fixes) out.push(f);
+    if (!(byCat.get(c.key)?.length || c.fixes.length)) for (const d of c.deviations.slice(0, 2)) out.push(`${c.label}: ${d}.`);
+  }
+  return [...new Set(out.map((s) => s.replace(/\.\.$/, ".")))].slice(0, 20);
+}
+
 function grade(score: number) {
   return score >= 90 ? "A" : score >= 80 ? "B" : score >= 65 ? "C" : score >= 50 ? "D" : "F";
+}
+
+export class SameUrlError extends Error {
+  constructor() {
+    super("reference_url and candidate_url point to the same page. Compare two different pages.");
+  }
 }
 
 const STAGES: JobStage[] = [
@@ -161,6 +270,7 @@ const STAGES: JobStage[] = [
 ];
 
 export async function createAdherence(actor: Actor, input: { reference: string; design: string }) {
+  if (normalizeUrl(input.reference).normalized === normalizeUrl(input.design).normalized) throw new SameUrlError();
   const ref = normalizeUrl(input.reference);
   const des = normalizeUrl(input.design);
   const id = newId("adh");
@@ -278,9 +388,12 @@ export async function runAdherence(id: string) {
     const weights: Record<AdherenceCategoryKey, number> = { visual: 2, spatial: 1, colors: 2, typography: 2, layout: 1, surfaces: 1, elevation: 0.5 };
     const wsum = categories.reduce((a, c) => a + weights[c.key], 0);
     const overall = Math.round(categories.reduce((a, c) => a + c.score * weights[c.key], 0) / wsum);
+    const fixes = buildFixes(ref, des);
     const report: AdherenceReport = {
       overall: { score: overall, grade: grade(overall), summary: critique?.summary ?? `Overall adherence ${overall}/100.` },
       categories,
+      fixes,
+      recommendations: buildRecommendations(categories, fixes),
       agentInstructions:
         critique?.agentInstructions ??
         categories.flatMap((c) => c.deviations.map((d) => `- [${c.label}] ${d}`)).join("\n"),

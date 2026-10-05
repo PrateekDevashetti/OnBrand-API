@@ -1,10 +1,11 @@
-import { and, eq, desc, gte } from "drizzle-orm";
+import { and, eq, desc, gte, isNull, inArray, lt } from "drizzle-orm";
 import { db } from "./db/client";
 import { extractions, type JobStage } from "./db/schema";
 import { newId, normalizeUrl, companyFromDomain } from "./ids";
 import { capturePage } from "./engine/crawl";
 import { synthesize, type GroupKey } from "./engine/synthesize";
-import { buildTokens, fontFamilies } from "./engine/analyze";
+import { buildTokens, fontFamilies, clusterColors } from "./engine/analyze";
+import { groupsFor, pickSections, type SectionName } from "./sections";
 import { putObject } from "./storage";
 import { debit, refund, recordUsage, PRICING, type Actor } from "./accounts";
 import { dispatch } from "./queue";
@@ -17,9 +18,32 @@ export type ExtractInput = {
   cache?: boolean; // true = use cached when fresh
   pages?: "single" | "all";
   maxPages?: number;
+  /** Selective extraction: only these sections. null/undefined = full extraction. */
+  sections?: SectionName[] | null;
 };
 
+/** Hard cap on pages discovered in "all pages" (map) mode. */
+export const MAX_SITE_PAGES = 50;
+
 const CACHE_TTL_DAYS = 14;
+const CAPTURE_TIMEOUT_MS = 150_000;
+const STALE_JOB_MS = 12 * 60_000;
+
+function withTimeout<T>(p: Promise<T>, ms: number, message: string): Promise<T> {
+  let t: NodeJS.Timeout;
+  return Promise.race([p, new Promise<T>((_, reject) => (t = setTimeout(() => reject(new Error(message)), ms)))]).finally(() => clearTimeout(t));
+}
+
+/** Fail (and refund) extractions stuck in running/queued past the stale window, e.g. after a crash. */
+export async function reapStaleExtractions() {
+  const cutoff = new Date(Date.now() - STALE_JOB_MS);
+  const stuck = await db.query.extractions.findMany({ where: and(inArray(extractions.status, ["running", "queued"]), lt(extractions.createdAt, cutoff)) });
+  for (const row of stuck) {
+    await db.update(extractions).set({ status: "failed", error: "Timed out. Credits refunded — please retry.", finishedAt: new Date() }).where(eq(extractions.id, row.id));
+    if (row.credits) await refund(row.userId, row.credits, "extraction_timeout", row.id);
+  }
+  return stuck.length;
+}
 
 const STAGES: JobStage[] = [
   { key: "crawl", label: "Rendering the page", status: "pending" },
@@ -40,7 +64,8 @@ export async function createExtraction(actor: Actor, input: ExtractInput, parent
   if (input.cache !== false) {
     const since = new Date(Date.now() - CACHE_TTL_DAYS * 86400_000);
     const cached = await db.query.extractions.findFirst({
-      where: and(eq(extractions.normalizedUrl, normalized), eq(extractions.status, "completed"), gte(extractions.finishedAt, since)),
+      // Only full extractions are cache sources; a selective request can still be served from one.
+      where: and(eq(extractions.normalizedUrl, normalized), eq(extractions.status, "completed"), gte(extractions.finishedAt, since), isNull(extractions.sections)),
       orderBy: [desc(extractions.finishedAt)],
     });
     if (cached?.brand) {
@@ -54,6 +79,8 @@ export async function createExtraction(actor: Actor, input: ExtractInput, parent
           apiKeyId: actor.apiKeyId ?? null,
           parentId: parentId ?? null,
           source: "cache",
+          sections: input.sections ?? null,
+          isPublic: false,
           pagesMode,
           requestFrom: actor.via,
           credits: 0,
@@ -89,11 +116,17 @@ export async function createExtraction(actor: Actor, input: ExtractInput, parent
       source: "new",
       requestFrom: actor.via,
       credits: price,
-      stages: STAGES,
+      sections: input.sections ?? null,
+      stages: stagesFor(input.sections ?? null),
     })
     .returning();
   await dispatch("extract", id, () => runExtraction(id, input.maxPages));
   return row;
+}
+
+function stagesFor(sections: SectionName[] | null): JobStage[] {
+  const groups = groupsFor(sections);
+  return groups ? STAGES.filter((s) => s.key === "crawl" || s.key === "finalize" || groups.includes(s.key as GroupKey)) : STAGES;
 }
 
 async function setStage(id: string, key: string, status: JobStage["status"]) {
@@ -117,7 +150,7 @@ export async function runExtraction(id: string, maxPages?: number) {
   let capture: Capture;
   try {
     await setStage(id, "crawl", "running");
-    capture = await capturePage(row.url);
+    capture = await withTimeout(capturePage(row.url), CAPTURE_TIMEOUT_MS, `Page capture timed out after ${CAPTURE_TIMEOUT_MS / 1000}s`);
     const base = `extractions/${id}`;
     const [screenshotPath, heroPath, htmlPath, cssPath] = await Promise.all([
       capture.screenshot ? putObject(`${base}/screenshot.jpg`, capture.screenshot) : null,
@@ -140,12 +173,14 @@ export async function runExtraction(id: string, maxPages?: number) {
     await setStage(id, "crawl", "done");
 
     // Synthesize all section groups in parallel; persist each as it lands.
-    const groups = ["identity", "palette", "typography", "spatial", "components", "sections"] as GroupKey[];
+    const selection = (row.sections ?? null) as SectionName[] | null;
+    const groups = groupsFor(selection) ?? (["identity", "palette", "typography", "spatial", "components", "sections"] as GroupKey[]);
     for (const g of groups) await setStage(id, g, "running");
     let lock = Promise.resolve();
     const merged: Record<string, unknown> = { ...partial };
     const result = await synthesize(capture, {
       depth: row.depth as "deep" | "light",
+      groups,
       onGroupDone: async (key, part) => {
         // Persist each section as it lands so clients can stream results.
         lock = lock.then(async () => {
@@ -160,11 +195,14 @@ export async function runExtraction(id: string, maxPages?: number) {
     Object.assign(merged, result);
 
     await setStage(id, "finalize", "running");
-    const brand = merged as BrandSystem;
+    let brand = merged as BrandSystem;
     brand.pages = s.links.slice(0, 60);
-    brand.icons = { ...brand.icons, svgs: s.icons.slice(0, 16).map((i) => ({ name: i.label || "icon", svg: i.svg })) };
-    const allColors = [...brand.colors.baseline, ...brand.colors.secondary, ...brand.colors.others];
-    brand.tokens = buildTokens(s, allColors.map((c) => ({ name: c.name, hex: c.hex })), fontFamilies(s));
+    if (brand.icons) brand.icons = { ...brand.icons, svgs: s.icons.slice(0, 16).map((i) => ({ name: i.label || "icon", svg: i.svg })) };
+    if (brand.colors) {
+      const allColors = [...brand.colors.baseline, ...brand.colors.secondary, ...brand.colors.others];
+      brand.tokens = buildTokens(s, allColors.map((c) => ({ name: c.name, hex: c.hex })), fontFamilies(s));
+    }
+    if (selection) brand = pickSections(brand, selection) as BrandSystem;
     // History lists the domain's company; the brand viewer shows the name the brand uses for itself.
     const company = companyFromDomain(domain);
     await db
@@ -172,11 +210,11 @@ export async function runExtraction(id: string, maxPages?: number) {
       .set({
         brand,
         company,
-        palette: paletteOf(brand),
+        palette: brand.colors ? paletteOf(brand) : clusterColors(s).slice(0, 4).map((f) => f.hex),
         status: "completed",
         finishedAt: new Date(),
         latencyMs: Date.now() - started,
-        stages: STAGES.map((st) => ({ ...st, status: "done" })),
+        stages: stagesFor((row.sections ?? null) as SectionName[] | null).map((st) => ({ ...st, status: "done" as const })),
       })
       .where(eq(extractions.id, id));
     await recordUsage({ userId: row.userId, apiKeyId: row.apiKeyId, via: row.requestFrom as Actor["via"] }, "extraction", row.credits, id, Date.now() - started);
@@ -198,7 +236,7 @@ export async function runExtraction(id: string, maxPages?: number) {
 
 /** "All pages": discover same-domain pages from the root page and extract each (up to 20). */
 async function expandSite(actor: Actor, root: typeof extractions.$inferSelect, input: ExtractInput, links?: string[]) {
-  const max = Math.min(input.maxPages ?? 20, 20) - 1;
+  const max = Math.min(input.maxPages ?? 20, MAX_SITE_PAGES) - 1;
   const candidates = links ?? root.brand?.pages ?? [];
   const seen = new Set([root.normalizedUrl]);
   const picked: string[] = [];

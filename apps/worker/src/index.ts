@@ -4,7 +4,7 @@
  * and exposes /health for the platform.
  */
 import http from "node:http";
-import { claimJob, finishJob, runExtraction, runAdherence, browserAvailable } from "@onbrand/core";
+import { claimJob, finishJob, runExtraction, runAdherence, browserAvailable, reapStaleExtractions } from "@onbrand/core";
 
 const CONCURRENCY = Number(process.env.WORKER_CONCURRENCY ?? 3);
 let running = 0;
@@ -60,3 +60,10 @@ for (const sig of ["SIGTERM", "SIGINT"] as const) {
     setTimeout(() => process.exit(0), 120_000);
   });
 }
+
+// Fail + refund anything stuck past the stale window (e.g. a crash mid-crawl).
+setInterval(() => {
+  reapStaleExtractions()
+    .then((n) => n && console.log(`[worker] reaped ${n} stale extraction(s)`))
+    .catch((e) => console.error("[worker] reaper failed", (e as Error).message));
+}, 60_000).unref();

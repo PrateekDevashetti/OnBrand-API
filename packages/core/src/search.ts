@@ -1,16 +1,24 @@
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
+import { parse, converter, differenceCiede2000 } from "culori";
 import { db } from "./db/client";
 import { searches, styleIndex } from "./db/schema";
 import { newId } from "./ids";
 import { debit, recordUsage, PRICING, type Actor } from "./accounts";
 import { structured, llmAvailable } from "./llm";
 import { publicUrl } from "./storage";
+import { extractions } from "./db/schema";
+import { FEATURED_ORDER } from "./seed/sites";
 
 export type MatchLabel = "Strong Match" | "Good Match" | "Related" | "Discovery";
 
 export type StyleResult = {
   id: string;
+  /** "discovery" marks a rotating exemplar of the detected style (never set when filters are used). */
+  badge?: "discovery" | null;
+  /** Short style traits for compact cards, e.g. ["Dark", "Bold", "Typographic"]. */
+  traits?: string[];
+  facets?: StyleFacets;
   domain: string;
   url: string;
   name: string;
@@ -58,6 +66,99 @@ function tokens(q: string): string[] {
 
 type Row = typeof styleIndex.$inferSelect;
 
+
+// ---------- closed filter vocabulary (hard constraints) ----------
+
+export const FILTER_VOCAB = {
+  page_type: ["homepage", "about", "pricing", "careers", "portfolio", "product", "blog", "case_study", "landing_page", "services"],
+  industry: ["saas", "ai", "developer_tools", "creative_agency", "branding", "design", "fintech", "crypto", "e_commerce", "fashion", "beauty", "food_beverage", "hardware", "travel", "education", "media", "productivity", "architecture"],
+  hue: ["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "brown", "neutral"],
+  layout: ["generous_whitespace", "dense_packed", "asymmetric_broken_grid", "grid_based_strict", "centered_symmetric", "card_based"],
+} as const;
+export type FilterKey = keyof typeof FILTER_VOCAB;
+export type SearchFilters = Partial<Record<FilterKey, string | null>>;
+export type StyleFacets = Record<FilterKey, string[]>;
+
+const toLch = converter("lch");
+const deltaE = differenceCiede2000();
+
+function hueOf(hex: string): string | null {
+  const c = toLch(parse(hex));
+  if (!c) return null;
+  const l = c.l ?? 0, ch = c.c ?? 0, h = c.h ?? 0;
+  if (ch < 12) return "neutral";
+  if (l < 45 && h > 30 && h < 90) return "brown";
+  if (h < 25 || h >= 345) return "pink";
+  if (h < 55) return "red";
+  if (h < 85) return "orange";
+  if (h < 115) return "yellow";
+  if (h < 170) return "green";
+  if (h < 230) return "teal";
+  if (h < 305) return "blue";
+  return "purple";
+}
+
+const PAGE_MAP: Record<string, string> = { homepage: "homepage", about: "about", "about/team": "about", pricing: "pricing", careers: "careers", portfolio: "portfolio", product: "product", blog: "blog", "case study": "case_study", landing: "landing_page", services: "services" };
+const INDUSTRY_RULES: [RegExp, string][] = [
+  [/agency\/creative|creative (studio|agency)|motion studio|digital (studio|agency)|3d studio|art direction|web designer/i, "creative_agency"],
+  [/branding|brand (studio|consultancy)/i, "branding"],
+  [/design (tool|partnership|agency)|website builder|web publishing/i, "design"],
+  [/\bai\b|ai lab|generative|ai search|ai compute|taste infra/i, "ai"],
+  [/developer|email api|data platform|ai compute/i, "developer_tools"],
+  [/\bsaas\b|product tool|workspace|crm|scheduling|analytics|presentation|productivity|email client|research tool/i, "saas"],
+  [/fintech|payments|financ/i, "fintech"],
+  [/crypto|wallet|web3/i, "crypto"],
+  [/e-commerce|retail|creator platform/i, "e_commerce"],
+  [/fashion|sportswear/i, "fashion"],
+  [/beauty|skincare/i, "beauty"],
+  [/food|beverage|drink/i, "food_beverage"],
+  [/hardware|consumer tech/i, "hardware"],
+  [/travel/i, "travel"],
+  [/education/i, "education"],
+  [/media|publishing|youth culture/i, "media"],
+  [/productivity|workspace|notes/i, "productivity"],
+  [/architecture/i, "architecture"],
+];
+const LAYOUT_MAP: Record<string, string> = { breathing: "generous_whitespace", tight: "dense_packed", asymmetric: "asymmetric_broken_grid", grid: "grid_based_strict", medium: "centered_symmetric", cards: "card_based" };
+
+export function facetsOf(row: Row): StyleFacets {
+  const hay = [row.label, ...row.industries, ...row.tags].join(" | ");
+  const page = [...new Set(row.websiteTypes.map((w) => PAGE_MAP[w.toLowerCase()]).filter(Boolean))];
+  if (row.tags.some((t) => /about\/team/i.test(t)) && !page.includes("about") && !page.length) page.push("about");
+  return {
+    page_type: page.length ? page : ["homepage"],
+    industry: [...new Set(INDUSTRY_RULES.filter(([re]) => re.test(hay)).map(([, v]) => v))],
+    hue: [...new Set(row.palette.map(hueOf).filter((h): h is string => !!h))],
+    layout: [...new Set(row.layouts.map((l) => LAYOUT_MAP[l.toLowerCase()]).filter(Boolean))],
+  };
+}
+
+export class InvalidFilterError extends Error {}
+
+/** Validate a filters object against the closed vocabulary. */
+export function parseFilters(f: unknown): SearchFilters {
+  if (!f || typeof f !== "object") return {};
+  const out: SearchFilters = {};
+  for (const [k, v] of Object.entries(f as Record<string, unknown>)) {
+    if (v == null || v === "") continue;
+    if (!(k in FILTER_VOCAB)) throw new InvalidFilterError(`Unknown filter "${k}". Valid filters: ${Object.keys(FILTER_VOCAB).join(", ")}.`);
+    const val = String(v).toLowerCase();
+    if (!(FILTER_VOCAB[k as FilterKey] as readonly string[]).includes(val)) throw new InvalidFilterError(`Unknown ${k} "${v}". Valid values: ${FILTER_VOCAB[k as FilterKey].join(", ")}.`);
+    out[k as FilterKey] = val;
+  }
+  return out;
+}
+
+function passes(row: Row, where: SearchFilters) {
+  const f = facetsOf(row);
+  return (Object.entries(where) as [FilterKey, string][]).every(([k, v]) => f[k].includes(v));
+}
+
+/** Taxonomy tags shown on result cards: alphabetical, mode tags removed. */
+function taxonomy(row: Row) {
+  return row.tags.filter((t) => !/^(dark|light)$/i.test(t)).sort((a, b) => a.localeCompare(b));
+}
+
 function lexicalScore(row: Row, toks: string[], filters: string[]) {
   const fields: [string, number][] = [
     [row.tags.join(" "), 3],
@@ -91,7 +192,10 @@ function toResult(row: Row, score: number, match: MatchLabel, reasoning = ""): S
     name: row.name,
     label: row.label,
     screenshot: publicUrl(row.screenshotPath),
-    tags: [...row.websiteTypes.slice(0, 1), ...row.industries.slice(0, 1), ...row.styles.slice(0, 1), ...row.tags].filter((t, i, a) => t && a.indexOf(t) === i).slice(0, 3),
+    tags: taxonomy(row).slice(0, 6),
+    traits: row.styles.slice(0, 3),
+    facets: facetsOf(row),
+    badge: match === "Discovery" ? "discovery" : null,
     palette: row.palette,
     typography: row.typography,
     description: row.description,
@@ -114,7 +218,15 @@ const RerankSchema = z.object({
   ),
 });
 
-export type SearchInput = { query: string; depth?: "light" | "deep"; limit?: number; filters?: string[] };
+export type SearchInput = {
+  query: string;
+  depth?: "light" | "deep";
+  limit?: number;
+  /** Soft facet chips from the playground (ranking boosts). */
+  filters?: string[];
+  /** Hard constraints from the closed vocabulary: every result satisfies them. */
+  where?: SearchFilters;
+};
 
 export async function styleSearch(actor: Actor, input: SearchInput) {
   const started = Date.now();
@@ -124,7 +236,9 @@ export async function styleSearch(actor: Actor, input: SearchInput) {
   const id = newId("srch");
   await debit(actor.userId, depth === "deep" ? PRICING.searchDeep : PRICING.searchLight, "search", id);
 
-  const rows = await db.query.styleIndex.findMany();
+  const where = input.where ?? {};
+  const hasWhere = Object.keys(where).length > 0;
+  const rows = (await db.query.styleIndex.findMany()).filter((r) => passes(r, where));
   const toks = tokens(input.query);
   const scored = rows
     .map((r) => ({ r, s: lexicalScore(r, toks, filters) }))
@@ -163,11 +277,80 @@ export async function styleSearch(actor: Actor, input: SearchInput) {
     });
   }
 
+  // Discovery: rotate one fresh exemplar of the detected style into the tail (never when filters are set).
+  if (!hasWhere && !filters.length && results.length >= 3) {
+    const taken = new Set(results.map((r) => r.id));
+    const pool = scored.filter(({ r, s }) => !taken.has(r.id) && s > 0).slice(0, 10);
+    if (pool.length) {
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      results[results.length - 1] = toResult(pick.r, pick.s, "Discovery");
+    }
+  }
+
   const latencyMs = Date.now() - started;
   const credits = depth === "deep" ? PRICING.searchDeep : PRICING.searchLight;
-  await db.insert(searches).values({ id, userId: actor.userId, apiKeyId: actor.apiKeyId ?? null, query: input.query, tags: queryTags, filters: { facets: filters }, depth, limit, results, credits, requestFrom: actor.via, latencyMs });
+  await db.insert(searches).values({ id, userId: actor.userId, apiKeyId: actor.apiKeyId ?? null, query: input.query, tags: queryTags, filters: { facets: filters, ...where }, depth, limit, results, credits, requestFrom: actor.via, latencyMs });
   await recordUsage(actor, "search", credits, id, latencyMs);
-  return { id, query: input.query, depth, tags: queryTags, results, latencyMs };
+  return { id, query: input.query, depth, tags: queryTags, filters: where, results, latencyMs };
+}
+
+/** Nearest visual neighbours in the index for one of the caller's completed extractions. */
+export async function similarStyles(actor: Actor, extractionId: string, topK = 12) {
+  const started = Date.now();
+  const ext = await db.query.extractions.findFirst({ where: eq(extractions.id, extractionId) });
+  if (!ext || ext.userId !== actor.userId || ext.status !== "completed" || !ext.brand) return null;
+  if (ext.sections) throw new FullExtractionRequiredError();
+  const id = newId("srch");
+  await debit(actor.userId, PRICING.searchLight, "search", id);
+  const b = ext.brand;
+  const brandHexes = [...(b.colors?.baseline ?? []), ...(b.colors?.secondary ?? [])].map((c) => c.hex);
+  const fams = (b.typography?.families ?? []).map((f) => f.family.toLowerCase());
+  const kw = new Set([...(b.identity?.keywords ?? []), b.identity?.primaryStyle?.name ?? "", b.identity?.mode ?? ""].map((k) => String(k).toLowerCase()).filter(Boolean));
+  const rows = (await db.query.styleIndex.findMany()).filter((r) => r.domain !== ext.domain);
+  const scored = rows
+    .map((r) => {
+      let pal = 0;
+      for (const h of brandHexes.slice(0, 5)) {
+        const p = parse(h);
+        const best = Math.min(...r.palette.map((x) => { const q = parse(x); return p && q ? deltaE(p, q) : 99; }), 99);
+        pal += Math.max(0, 1 - best / 25);
+      }
+      const palScore = brandHexes.length ? pal / Math.min(5, brandHexes.length) : 0;
+      const mode = r.mode === (b.identity?.mode ?? "") ? 1 : 0;
+      const type = fams.some((f) => r.typography.toLowerCase().includes(f)) ? 1 : 0;
+      const words = [...r.tags, ...r.styles].map((t) => t.toLowerCase());
+      const kwScore = [...kw].filter((k) => words.some((w) => w.includes(k) || k.includes(w))).length / Math.max(3, kw.size);
+      return { r, s: palScore * 4 + mode * 2 + type * 1.5 + kwScore * 2.5 };
+    })
+    .sort((a, b2) => b2.s - a.s)
+    .slice(0, Math.max(1, Math.min(topK, 30)));
+  const top = scored[0]?.s || 1;
+  const results = scored.map(({ r, s }) => toResult(r, s, s / top > 0.85 ? "Strong Match" : s / top > 0.6 ? "Good Match" : "Related"));
+  const latencyMs = Date.now() - started;
+  await db.insert(searches).values({ id, userId: actor.userId, apiKeyId: actor.apiKeyId ?? null, kind: "similar", sourceExtractionId: ext.id, query: ext.url, tags: [], filters: {}, depth: "light", limit: results.length, results, credits: PRICING.searchLight, requestFrom: actor.via, latencyMs });
+  await recordUsage(actor, "search", PRICING.searchLight, id, latencyMs);
+  return { id, source: { extraction_id: ext.id, url: ext.url }, results, latencyMs };
+}
+
+export class FullExtractionRequiredError extends Error {
+  constructor() {
+    super("This needs a full extraction. Extract the URL again without `sections`.");
+  }
+}
+
+/** Search history (query searches and similarity lookups), newest first. */
+export async function searchHistory(userId: string, opts: { kind?: string; depth?: string; q?: string; apiKeyId?: string; limit?: number; offset?: number } = {}) {
+  const conds: SQL[] = [eq(searches.userId, userId)];
+  if (opts.kind) conds.push(eq(searches.kind, opts.kind));
+  if (opts.depth) conds.push(inArray(searches.depth, opts.depth === "fast" ? ["light", "fast"] : [opts.depth]));
+  if (opts.q) conds.push(ilike(searches.query, `%${opts.q}%`));
+  if (opts.apiKeyId) conds.push(eq(searches.apiKeyId, opts.apiKeyId));
+  const where = and(...conds);
+  const limit = Math.max(1, Math.min(opts.limit ?? 20, 100));
+  const rows = await db.query.searches.findMany({ where, orderBy: [desc(searches.createdAt)], limit, offset: opts.offset ?? 0 });
+  const [{ total }] = await db.select({ total: sql<number>`count(*)::int` }).from(searches).where(where);
+  const byStatus = await db.select({ status: searches.status, n: sql<number>`count(*)::int` }).from(searches).where(where).groupBy(searches.status);
+  return { rows, total, totalByStatus: Object.fromEntries(byStatus.map((x) => [x.status, x.n])) };
 }
 
 export async function getStyle(id: string) {
@@ -185,6 +368,10 @@ export async function getStyle(id: string) {
 }
 
 export async function featuredStyles(limit = 12) {
-  const rows = await db.query.styleIndex.findMany({ orderBy: [desc(styleIndex.featured), desc(styleIndex.createdAt)], limit });
-  return rows.map((r) => toResult(r, 0, "Discovery"));
+  const rows = await db.query.styleIndex.findMany({ orderBy: [desc(styleIndex.featured), desc(styleIndex.createdAt)] });
+  const rank = (d: string) => { const i = FEATURED_ORDER.indexOf(d); return i < 0 ? 999 : i; };
+  return rows
+    .sort((a, b) => rank(a.domain) - rank(b.domain))
+    .slice(0, limit)
+    .map((r) => ({ ...toResult(r, 0, "Related"), badge: null }));
 }
