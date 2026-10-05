@@ -40,6 +40,11 @@ const viewer = (name: string, id: string, extra = 0): Shot => ({ name, path: `/a
 
 const SHOTS: Shot[] = [
   { name: "landing", path: "/" },
+  ...(["manifesto", "product", "tour", "compare", "integrations", "pricing", "faq"] as const).map((id, k) => ({
+    name: ["l_manifesto", "l_endpoints", "l_case", "l_compare", "l_integrations", "l_pricing", "l_faq"][k],
+    path: "/",
+    act: (p: Page) => p.evaluate((id) => window.scrollTo(0, document.getElementById(id)!.getBoundingClientRect().top + window.scrollY), id).then(() => undefined),
+  })),
   { name: "home", path: "/app" },
   { name: "home_mcp", path: "/app", act: (p) => scrollMain(p, 326) },
   { name: "extract", path: "/app/extract?url=https://tastelabs.com/", act: (p) => p.getByText("All pages", { exact: true }).click() },

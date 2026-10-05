@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const SWATCHES = ["#0f3d2e", "#1d5a43", "#2e7d5b", "#4caf50", "#8fd19e", "#cfe8d4", "#e9f5ec", "#f3f6f0", "#15201b"];
 
-function ExtractArt() {
+export function ExtractArt() {
   const [pct, setPct] = useState(12);
   useEffect(() => {
     const t = setInterval(() => setPct((p) => (p >= 100 ? 8 : p + 3)), 140);
@@ -34,7 +34,7 @@ function ExtractArt() {
 
 const QUERIES = ["brands with a playful, hand-drawn illustration style?", "dark bold creative studio with expressive type", "calm fintech with editorial serif headlines"];
 
-function SearchArt() {
+export function SearchArt() {
   const [qi, setQi] = useState(0);
   const [n, setN] = useState(0);
   useEffect(() => {
@@ -61,7 +61,7 @@ function SearchArt() {
   );
 }
 
-function AdherenceArt() {
+export function AdherenceArt() {
   const rows = [
     ["[TYPOGRAPHY]", "100% CORRECT"],
     ["[COLOURS]", "100% CORRECT"],

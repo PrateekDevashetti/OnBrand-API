@@ -1,11 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { featuredStyles } from "@onbrand/core";
+import { featuredStyles, PLANS, ANNUAL_DISCOUNT, PRICING } from "@onbrand/core";
 import { Banner } from "@/components/landing/Banner";
 import { HeroInput } from "@/components/landing/HeroInput";
-import { FigureExtract, FigureSearch, FigureVerify } from "@/components/landing/Figures";
-import { CodeBlock } from "@/components/ui/CodeBlock";
-import { config } from "@/lib/config";
+import { Manifesto, Endpoints, BeforeAfter, ProductTour, IntegrateSection, PricingSection, Faq } from "@/components/landing/Sections";
 
 export const dynamic = "force-dynamic";
 
@@ -93,74 +91,13 @@ export default async function Landing() {
         </div>
       </section>
 
-      <section id="product" className="border-t border-[#2a2a2a] px-[64px] py-[110px]">
-        <div className="mx-auto max-w-[1180px]">
-          <h2 className="text-[33px] leading-[1.1]">
-            <span className="text-[#8a8c88]">Everything your agent needs to stay on brand.</span>
-            <br />
-            In three endpoints.
-          </h2>
-          <div className="mt-[56px] grid grid-cols-3 gap-[28px]">
-            {[
-              { F: FigureExtract, t: "Brand Extraction", b: "BETA", d: "Turn any website into reusable design tokens, components and motion rules. Built for agents." },
-              { F: FigureSearch, t: "Style Search", b: "ALPHA", d: "No brand yet? Describe a vibe and retrieve real brand systems from our curated index." },
-              { F: FigureVerify, t: "Verify Adherence", b: "ALPHA", d: "Score what your agent made against the reference brand and get fixes your agent loop can apply." },
-            ].map(({ F, t, b, d }) => (
-              <div key={t}>
-                <div className="hl-onbrand overflow-hidden rounded-[14px] bg-[#191919] p-4">
-                  <F />
-                </div>
-                <div className="mt-[20px] flex items-center gap-[10px] text-[15px]">
-                  {t} <span className={b === "BETA" ? "badge-beta" : "badge-alpha"}>{b}</span>
-                </div>
-                <p className="mt-[12px] text-[13px] leading-[1.55] text-dim">{d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-[#2a2a2a] px-[64px] py-[110px]">
-        <div className="mx-auto grid max-w-[1180px] grid-cols-2 items-center gap-[64px]">
-          <div>
-            <div className="eyebrow">Agent integrations</div>
-            <h2 className="mt-4 text-[33px] leading-[1.1]">Plug the brand layer into any agent.</h2>
-            <p className="mt-5 text-[15px] leading-[1.6] text-dim">
-              One MCP server, one skill, one REST API. Claude Code, Cursor, Codex and your own agents get the brand system, a golden prompt, and a verifier to loop against — so the pricing page your agent ships looks like your brand, not like everyone else&apos;s.
-            </p>
-            <div className="mt-8 flex gap-3">
-              {["Claude Code", "Cursor", "Codex", "MCP", "REST"].map((x) => (
-                <span key={x} className="pill">{x}</span>
-              ))}
-            </div>
-          </div>
-          <div className="space-y-3">
-            <CodeBlock code={`claude mcp add --transport http onbrand \\\n  ${config.mcpUrl}`} />
-            <CodeBlock code={`npx skills add ${config.skillsRepo}`} />
-            <CodeBlock code={`curl ${config.apiBase}/extract \\\n  -H 'Authorization: Bearer YOUR_API_KEY' \\\n  -d '{ "url": "https://linear.app" }'`} />
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" className="border-t border-[#2a2a2a] px-[64px] py-[110px]">
-        <div className="mx-auto max-w-[1180px]">
-          <h2 className="text-[33px]">Simple credits. They roll over.</h2>
-          <div className="mt-10 grid grid-cols-3 gap-3">
-            {[
-              ["Free", "20 credits", "Try every endpoint"],
-              ["Starter", "$79 / month", "600 credits · MCP access"],
-              ["Pro", "$599 / month", "6,000 credits · onboarding support"],
-            ].map(([n, p, d]) => (
-              <div key={n} className="rounded-[2px] bg-[#1a1a1a] px-7 py-8">
-                <div className="text-[15px]">{n}</div>
-                <div className="mt-8 text-[29px]">{p}</div>
-                <div className="mt-3 text-[14px] text-dim">{d}</div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 text-[14px] text-dim">Extraction 2 credits · Search 1–2 credits · Verify 2 credits · Cached extractions are free</div>
-        </div>
-      </section>
+      <Manifesto />
+      <Endpoints />
+      <BeforeAfter />
+      <ProductTour />
+      <IntegrateSection />
+      <PricingSection plans={PLANS} discount={ANNUAL_DISCOUNT} prices={PRICING} />
+      <Faq />
 
       <footer className="flex items-center justify-between border-t border-[#2a2a2a] px-[32px] py-[40px] text-[13px] text-dim">
         <div className="flex items-center gap-3">

@@ -184,3 +184,8 @@ body {
   --hairline-lo: #4a4b49;
   --hairline-stroke: 1;
 }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
