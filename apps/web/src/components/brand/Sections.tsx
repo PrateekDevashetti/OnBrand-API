@@ -146,7 +146,7 @@ export function OverviewSection({
             </a>
           )}
         </div>
-        <div className="mt-[16px] grid grid-cols-3 gap-[12px]">
+        <div className="mt-[16px] grid grid-cols-3 gap-[12px] max-md:grid-cols-1">
           {artifacts.map((a) => (
             <a key={a.name} href={a.url ? `${a.url}?download=1` : undefined} className={`flex items-center justify-between rounded-[4px] bg-[#1c1c1c] px-[12px] py-[13px] ${a.url ? "hover:bg-[#262626]" : "opacity-50"}`}>
               <div>
@@ -222,7 +222,7 @@ export function IdentitySection({ brand }: { brand: Partial<BrandSystem> }) {
         </>
       )}
       <Eyebrow className="mt-[36px]">Style Classification</Eyebrow>
-      <div className="grid grid-cols-2 gap-[20px]">
+      <div className="grid grid-cols-2 gap-[20px] max-md:grid-cols-1">
         {[
           ["Primary Style", id.primaryStyle],
           ["Secondary Style", id.secondaryStyle],
@@ -293,7 +293,7 @@ function ColorCard({ c }: { c: Color }) {
         <div>
           <div className="flex items-center gap-[10px]">
             <span className="text-[15px] text-dim">{c.name}</span>
-            <span className="rounded-[3px] bg-[#2a2a2a] px-[7px] py-[2px] text-[10.5px] text-mute">{c.tone}</span>
+            <span className="rounded-[3px] bg-[#2a2a2a] px-[7px] py-[2px] text-[10.5px] text-dim">{c.tone}</span>
           </div>
           <div className="mt-[6px] text-[12px] text-cream">{c.hex}</div>
         </div>
@@ -557,7 +557,7 @@ export function ElevationSection({ brand }: { brand: Partial<BrandSystem> }) {
               <div className="min-w-0">
                 <div className="flex items-center gap-[10px]">
                   <span className="text-[14.5px] text-dim">{s.name}</span>
-                  <span className="rounded-[3px] bg-[#2a2a2a] px-[7px] py-[1px] text-[10.5px] text-mute">{s.kind}</span>
+                  <span className="rounded-[3px] bg-[#2a2a2a] px-[7px] py-[1px] text-[10.5px] text-dim">{s.kind}</span>
                 </div>
                 <p className="mt-[8px] text-[12.5px] text-dim">{s.description}</p>
                 <Chips className="mt-[12px]" items={s.usage} />
@@ -864,7 +864,7 @@ export function PageSectionsSection({ brand }: { brand: Partial<BrandSystem> }) 
           {s.components?.length ? (
             <>
               <div className="eyebrow mt-[18px] mb-[12px] text-[11px] text-dim">Components</div>
-              <div className="grid grid-cols-3 gap-[12px]">
+              <div className="grid grid-cols-3 gap-[12px] max-md:grid-cols-1">
                 {s.components.map((c, j) => (
                   <div key={j} className="rounded-[6px] bg-[#232322] px-[14px] py-[16px]">
                     <div className="text-[12.5px] text-dim">{c.name}</div>
@@ -899,7 +899,7 @@ export function MediaSection({ brand }: { brand: Partial<BrandSystem> }) {
             <span className="mt-[10px] inline-block rounded-[3px] bg-[#2a2a2a] px-[8px] py-[3px] text-[10.5px] text-dim">{m.kind}</span>
           </div>
           {m.url && (
-            <a href={m.url} target="_blank" rel="noreferrer" className="text-mute hover:text-cream" aria-label="Open asset">
+            <a href={m.url} target="_blank" rel="noreferrer" className="hit text-mute hover:text-cream" aria-label="Open asset">
               <LinkIcon />
             </a>
           )}

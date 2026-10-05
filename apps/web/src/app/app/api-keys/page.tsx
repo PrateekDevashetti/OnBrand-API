@@ -14,7 +14,7 @@ export default async function ApiKeysPage() {
   const user = (await getSessionUser())!;
   const keys = await listApiKeys(user.id);
   return (
-    <div className="px-[50px] pt-[50px] pb-[40px]">
+    <div className="px-[50px] pt-[50px] pb-[40px] max-md:px-[20px] max-md:pt-[28px]">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-[37px] leading-none text-cream">API Keys</h1>
@@ -22,12 +22,12 @@ export default async function ApiKeysPage() {
         </div>
         <NewKeyButton className="btn-solid h-[40px]" label="Create a new key" />
       </div>
-      <div className="mt-[44px] overflow-hidden rounded-[2px] bg-card">
-        <div className="grid grid-cols-[1.3fr_1.3fr_1fr_1fr_120px] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
+      <div className="mt-[44px] overflow-hidden rounded-[2px] bg-card max-lg:overflow-x-auto">
+        <div className="max-lg:min-w-[820px] grid grid-cols-[1.3fr_1.3fr_1fr_1fr_120px] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
           <span>Name</span><span>Key</span><span>Created</span><span>Last used</span><span />
         </div>
         {keys.map((k) => (
-          <div key={k.id} className="data-row grid-cols-[1.3fr_1.3fr_1fr_1fr_120px]">
+          <div key={k.id} className="max-lg:min-w-[820px] data-row grid-cols-[1.3fr_1.3fr_1fr_1fr_120px]">
             <span className="text-[13.5px] text-cream">{k.name}</span>
             <span className="font-mono text-[12px] text-dim">{k.prefix}••••••••</span>
             <span className="text-[12.5px] text-dim">{fmt(k.createdAt)}</span>

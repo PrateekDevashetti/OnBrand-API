@@ -12,6 +12,6 @@ export function RevokeKey({ id }: { id: string }) {
       <button className="text-dim hover:text-cream" onClick={() => setConfirm(false)}>Cancel</button>
     </span>
   ) : (
-    <button className="text-left text-[12px] text-dim hover:text-cream" onClick={() => setConfirm(true)}>Revoke</button>
+    <button className="hit text-left text-[12px] text-dim hover:text-cream" onClick={() => setConfirm(true)}>Revoke</button>
   );
 }

@@ -38,7 +38,7 @@ export function FeaturedMasonry({ items }: { items: StyleResult[] }) {
   const cols: { s: StyleResult; h: number }[][] = [[], [], [], []];
   items.forEach((s, i) => cols[i % 4].push({ s, h: MASONRY[i % MASONRY.length] }));
   return (
-    <div className="grid grid-cols-4 items-start gap-x-[clamp(12px,1.04vw,20px)]">
+    <div className="grid grid-cols-4 items-start gap-x-[clamp(12px,1.04vw,20px)] max-md:grid-cols-2 max-md:gap-y-[40px]">
       {cols.map((col, c) => (
         <div key={c} className="flex flex-col gap-[56px]">
           {col.map(({ s, h }) => (

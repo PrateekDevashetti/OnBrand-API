@@ -17,13 +17,13 @@
   --color-ink: #111111;
   --color-fg: #f3f6f0;
   --color-dim: #a3a5a1;
-  --color-mute: #767775;
+  --color-mute: #8c8e8a;
   --color-faint: #565755;
   --color-beta: #2f8ee0;
   --color-ok: #68e464;
   --color-warn: #e8b765;
   --color-bad: #f2555a;
-  --color-promo: #1999f9;
+  --color-promo: #0b6ed1;
   --color-canopy: #4caf50;
 
   --font-sans: var(--font-dm-sans), "DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -195,4 +195,47 @@ body {
   --stage: tan(atan2(100vw, 1920px));
   transform: scale(min(1, var(--stage)));
   transform-origin: 0 0;
+}
+
+/* ---------- interaction & accessibility baseline ---------- */
+button:not(:disabled),
+[role="button"],
+[role="tab"],
+summary,
+select,
+label[for] {
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 2px solid #f3f4f0;
+  outline-offset: 2px;
+}
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #7fb6ff;
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* Grow the hit area of small icon controls to >= 32px without changing their look. */
+.hit {
+  position: relative;
+}
+.hit::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+@media (max-width: 767px) {
+  .compare-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

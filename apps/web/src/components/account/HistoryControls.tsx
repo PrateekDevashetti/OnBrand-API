@@ -30,8 +30,8 @@ export function HistoryControls({ keys }: { keys: { id: string; name: string }[]
       <div className="mt-[34px]">
         <Segmented value={tab} onChange={(v) => set({ tab: v, q: null, status: null, key: null, from: null, depth: null })} options={[{ value: "extractions", label: "Extractions" }, { value: "search", label: "Search" }, { value: "adherence", label: "Adherence" }]} />
       </div>
-      <div className="mt-[30px] flex items-center gap-[30px]">
-        <div className="relative flex-1">
+      <div className="mt-[30px] flex items-center gap-[30px] max-md:flex-wrap max-md:gap-[10px]">
+        <div className="relative flex-1 max-md:basis-full">
           <SearchIcon className="absolute top-1/2 left-[16px] -translate-y-1/2 text-dim" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="h-[38px] w-full rounded-[4px] bg-card pr-4 pl-[40px] text-[13.5px] text-cream outline-none placeholder:text-dim" />
         </div>

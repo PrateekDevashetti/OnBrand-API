@@ -9,7 +9,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
   return (
     <main
       id={flush ? undefined : "panel"}
-      className={flush ? "min-w-0 flex-1 overflow-hidden bg-chrome" : "mr-[17px] mb-[17px] min-w-0 flex-1 overflow-y-auto rounded-[22px] bg-panel"}
+      className={flush ? "min-w-0 flex-1 overflow-hidden bg-chrome" : "mb-[17px] min-w-0 flex-1 overflow-y-auto rounded-[22px] bg-panel max-lg:mx-[8px] max-lg:mb-[8px] max-lg:rounded-[14px] lg:mr-[17px]"}
     >
       {children}
     </main>

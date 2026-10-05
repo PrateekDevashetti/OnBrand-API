@@ -19,8 +19,8 @@ export function TryFree({ className = "" }: { className?: string }) {
 
 export function Manifesto() {
   return (
-    <section id="manifesto" className="flex min-h-[1080px] items-center justify-center bg-[#1e1e1e] px-6">
-      <p className="max-w-[820px] text-center text-[32px] leading-[40px] tracking-[-0.01em] text-[#8b8d89]">
+    <section id="manifesto" className="flex min-h-[1080px] items-center justify-center bg-[#1e1e1e] px-6 max-md:min-h-[640px]">
+      <p className="max-w-[820px] text-center text-[32px] leading-[40px] max-md:text-[23px] max-md:leading-[31px] tracking-[-0.01em] text-[#8b8d89]">
         <span className="text-cream">We&apos;re building the brand layer for AI.</span> OnBrand is the first agent tool we&apos;re shipping from Canopy Labs. A brand is years of craft and care, and it&apos;s what makes a product feel whole. We want your agents to respect it.
       </p>
     </section>
@@ -37,11 +37,11 @@ const ENDPOINTS = [
 
 export function Endpoints() {
   return (
-    <section id="product" className="bg-[#1e1e1e] px-[40px] pt-[145px] pb-[150px]">
+    <section id="product" className="bg-[#1e1e1e] px-[40px] pt-[145px] pb-[150px] max-md:px-[20px] max-md:pt-[80px] max-md:pb-[80px]">
       <h2 className="max-w-[600px] text-[34px] leading-[40px] tracking-[-0.015em] text-cream">
         Everything your agent needs to stay on brand. <span className="text-[#8b8d89]">In three endpoints.</span>
       </h2>
-      <div className="mt-[48px] grid grid-cols-3 gap-[16px]">
+      <div className="mt-[48px] grid grid-cols-3 gap-[16px] max-lg:grid-cols-1">
         {ENDPOINTS.map(({ Art, title, badge, body }) => (
           <div key={title}>
             <div className="flex h-[402px] items-center justify-center overflow-hidden rounded-[2px] bg-[#151515]">
@@ -84,29 +84,29 @@ export function BeforeAfter() {
     };
   }, []);
   return (
-    <section id="compare" ref={sec} className="relative h-[1080px] bg-[#141414] px-[40px] pt-[150px]">
+    <section id="compare" ref={sec} className="relative h-[1080px] bg-[#141414] px-[40px] pt-[150px] max-md:h-auto max-md:px-[20px] max-md:pt-[80px] max-md:pb-[80px]">
       <h2 className="text-[32px] leading-[40px] tracking-[-0.015em] text-cream">
         Staying &ldquo;on brand&rdquo;
         <br />
         <span className="text-[#8b8d89]">lives in the details…</span>
       </h2>
-      <div className="mt-[52px] grid gap-[32px]" style={{ gridTemplateColumns: `${pos}fr ${100 - pos}fr` }}>
+      <div className="compare-grid mt-[52px] grid gap-[32px]" style={{ gridTemplateColumns: `${pos}fr ${100 - pos}fr` }}>
         <figure>
           <figcaption className="text-[18px] text-[#8b8d89]">Original</figcaption>
-          <div className="mt-[16px] h-[602px] overflow-hidden rounded-[2px] bg-white">
+          <div className="mt-[16px] h-[602px] max-md:h-[320px] overflow-hidden rounded-[2px] bg-white">
             <img src="/landing/before-canopy.jpg" alt="The original trycanopy.space homepage" className="h-full w-full object-cover object-left-top" draggable={false} />
           </div>
         </figure>
         <figure>
           <figcaption className="text-[18px] text-cream">With OnBrand</figcaption>
-          <div className="mt-[16px] h-[602px] overflow-hidden rounded-[2px] bg-white">
+          <div className="mt-[16px] h-[602px] max-md:h-[320px] overflow-hidden rounded-[2px] bg-white">
             <img src="/landing/after-canopy.jpg" alt="A new Canopy page built only from OnBrand's extraction of trycanopy.space" className="h-full w-full object-cover object-left-top" draggable={false} />
           </div>
         </figure>
       </div>
-      <p className="mt-[18px] text-[14px] text-[#6f716d]">The page on the right is new. Every colour, type stack, radius and button style in it comes from OnBrand&apos;s extraction of the original.</p>
+      <p className="mt-[18px] text-[14px] text-[#9a9c98]">The page on the right is new. Every colour, type stack, radius and button style in it comes from OnBrand&apos;s extraction of the original.</p>
       <div
-        className="absolute top-0 bottom-0 w-[32px] -translate-x-1/2 cursor-ew-resize"
+        className="absolute top-0 bottom-0 w-[32px] -translate-x-1/2 cursor-ew-resize max-md:hidden"
         style={{ left: `calc(40px + (100% - 112px) * ${pos / 100} + 16px)` }}
         onPointerDown={(e) => {
           drag.current = true;
@@ -150,7 +150,7 @@ export function ProductTour() {
     return () => clearInterval(t);
   }, [playing]);
   return (
-    <section id="tour" className="grid grid-cols-[minmax(280px,740fr)_minmax(0,1060fr)] gap-[40px] bg-[#f3f4f0] px-[40px] pt-[242px] pb-[242px] text-[#111]">
+    <section id="tour" className="grid grid-cols-[minmax(280px,740fr)_minmax(0,1060fr)] gap-[40px] bg-[#f3f4f0] px-[40px] pt-[242px] pb-[242px] text-[#111] max-lg:grid-cols-1 max-md:px-[20px] max-md:pt-[80px] max-md:pb-[80px]">
       <div className="flex flex-col justify-between">
         <div>
           <h2 className="max-w-[440px] text-[21px] leading-[28px] tracking-[-0.01em]">How OnBrand turns a website into a brand system your agent can use</h2>
@@ -171,15 +171,19 @@ export function ProductTour() {
           <img key={t.src} src={t.src} alt={t.label} className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700" style={{ opacity: k === i ? 1 : 0 }} />
         ))}
         <div className="absolute inset-x-0 bottom-0 flex items-center gap-[14px] bg-gradient-to-t from-black/70 to-transparent px-[38px] pt-[40px] pb-[28px] text-white">
-          <button type="button" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause tour" : "Play tour"} className="text-[15px]">
-            {playing ? "❚❚" : "▶"}
+          <button type="button" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause tour" : "Play tour"} className="hit flex h-[24px] w-[24px] items-center justify-center">
+            {playing ? (
+              <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="1" width="3.5" height="12" rx="1" fill="currentColor" /><rect x="7.5" y="1" width="3.5" height="12" rx="1" fill="currentColor" /></svg>
+            ) : (
+              <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M2 1.5v11l9-5.5z" fill="currentColor" /></svg>
+            )}
           </button>
           <span className="font-mono text-[12px] tabular-nums">
             {String(i + 1).padStart(2, "0")} / {String(TOUR.length).padStart(2, "0")}
           </span>
           <div className="flex flex-1 gap-[6px]">
             {TOUR.map((t, k) => (
-              <button key={t.src} type="button" onClick={() => (setI(k), setPlaying(false))} aria-label={t.label} className={`h-[3px] flex-1 rounded-full ${k <= i ? "bg-white" : "bg-white/30"}`} />
+              <button key={t.src} type="button" onClick={() => (setI(k), setPlaying(false))} aria-label={t.label} className={`hit h-[3px] flex-1 rounded-full ${k <= i ? "bg-white" : "bg-white/30"}`} />
             ))}
           </div>
           <span className="w-[260px] text-right text-[14px]">{TOUR[i].label}</span>
@@ -195,7 +199,7 @@ const CLIENTS = ["Claude Code", "Cursor", "Codex", "VS Code", "Windsurf", "Claud
 
 export function IntegrateSection() {
   return (
-    <section id="integrations" className="grid grid-cols-[minmax(0,1.58fr)_minmax(300px,1fr)] items-start gap-[clamp(40px,5vw,96px)] bg-[#141414] px-[clamp(32px,10.42vw,200px)] pt-[260px] pb-[260px]">
+    <section id="integrations" className="grid grid-cols-[minmax(0,1.58fr)_minmax(300px,1fr)] items-start gap-[clamp(40px,5vw,96px)] bg-[#141414] px-[clamp(32px,10.42vw,200px)] pt-[260px] pb-[260px] max-lg:grid-cols-1 max-md:pt-[80px] max-md:pb-[80px]">
       <div className="overflow-hidden rounded-[14px] border border-[#2a2a2a] bg-[#1e1e1e]">
         <img src="/landing/dashboard.jpg" alt="The OnBrand dashboard: usage, API keys and agent integrations" className="block w-full" />
       </div>
@@ -224,7 +228,7 @@ type Plan = { id: string; name: string; monthly: number | null; credits: number 
 export function PricingSection({ plans, discount, prices }: { plans: readonly Plan[]; discount: number; prices: { searchLight: number; searchDeep: number; extraction: number; adherence: number } }) {
   const [annual, setAnnual] = useState(false);
   return (
-    <section id="pricing" className="bg-[#141414] px-[40px] pt-[100px] pb-[100px]">
+    <section id="pricing" className="bg-[#141414] px-[40px] pt-[100px] pb-[100px] max-md:px-[20px]">
       <div className="inline-flex h-[52px] items-center gap-[4px] rounded-full border border-[#2a2a2a] p-[5px]">
         {[false, true].map((a) => (
           <button key={String(a)} type="button" onClick={() => setAnnual(a)} className={`h-[40px] rounded-full px-[17px] font-mono text-[14px] transition-colors ${annual === a ? "bg-[#2a2a2a] text-cream" : "text-[#8b8d89] hover:text-cream"}`}>
@@ -232,7 +236,7 @@ export function PricingSection({ plans, discount, prices }: { plans: readonly Pl
           </button>
         ))}
       </div>
-      <div className="mt-[43px] grid grid-cols-3 gap-[16px]">
+      <div className="mt-[43px] grid grid-cols-3 gap-[16px] max-lg:grid-cols-1">
         {plans.map((p) => {
           const price = p.monthly == null ? null : Math.round(p.monthly * (annual ? 1 - discount : 1));
           return (
@@ -294,8 +298,8 @@ const FAQ = [
 export function Faq() {
   const [open, setOpen] = useState<number | null>(null);
   return (
-    <section id="faq" className="bg-[#1e1e1e] px-[40px] pt-[144px] pb-[200px]">
-      <div className="grid grid-cols-2 border-t border-[#2e2e2d] pt-[30px]">
+    <section id="faq" className="bg-[#1e1e1e] px-[40px] pt-[144px] pb-[200px] max-md:px-[20px] max-md:pt-[80px] max-md:pb-[100px]">
+      <div className="grid grid-cols-2 border-t border-[#2e2e2d] pt-[30px] max-md:grid-cols-1 max-md:gap-[24px]">
         <div className="font-mono text-[17px] text-[#8b8d89]">Frequently asked questions</div>
         <div>
           {FAQ.map(([q, a], k) => (

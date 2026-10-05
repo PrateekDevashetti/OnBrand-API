@@ -32,7 +32,7 @@ export function AdherenceForm() {
   return (
     <>
       <form
-        className="mx-auto mt-[47px] flex w-[1042px] max-w-full items-end gap-[16px]"
+        className="mx-auto mt-[47px] flex w-[1042px] max-w-full items-end gap-[16px] max-md:flex-col max-md:items-stretch"
         onSubmit={(e) => {
           e.preventDefault();
           submit();

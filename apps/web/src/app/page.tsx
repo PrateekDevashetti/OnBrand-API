@@ -32,23 +32,23 @@ export default async function Landing() {
   return (
     <div className="min-h-screen bg-[#1e1e1e] text-cream">
       <Banner />
-      <header className="relative flex h-[69px] items-center justify-between px-[32px]">
+      <header className="relative flex h-[69px] items-center justify-between px-[32px] max-md:px-[16px]">
         <Link href="/" className="flex items-center gap-[10px]" aria-label="Canopy Labs OnBrand">
           <img src="/brand/canopy-mark-white.png" alt="" className="h-[26px]" />
           <img src="/brand/canopy-wordmark-white.png" alt="Canopy" className="h-[21px]" />
         </Link>
-        <nav className="absolute left-1/2 flex -translate-x-1/2 gap-[39px] text-[15px] text-cream">
+        <nav className="absolute left-1/2 flex -translate-x-1/2 gap-[39px] text-[15px] text-cream max-md:hidden [&>a]:py-[6px]">
           <a href="https://trycanopy.space" className="hover:opacity-60">Canvas</a>
           <Link href="#product" className="hover:opacity-60">Product</Link>
           <Link href="/app/docs" className="hover:opacity-60">Docs</Link>
           <Link href="#pricing" className="hover:opacity-60">Pricing</Link>
         </nav>
-        <Link href="/app" className="flex h-[37px] w-[202px] items-center justify-center rounded-[4px] border border-cream font-mono text-[15px] tracking-[0.02em] transition-colors hover:bg-cream hover:text-ink">
+        <Link href="/app" className="flex h-[37px] w-[202px] max-sm:w-[150px] items-center justify-center rounded-[4px] border border-cream font-mono text-[15px] tracking-[0.02em] transition-colors hover:bg-cream hover:text-ink">
           Try the API
         </Link>
       </header>
 
-      <section className="relative h-[1010px] overflow-hidden">
+      <section className="relative h-[1010px] overflow-hidden max-md:h-[620px]">
         <div className="absolute top-[7px] left-1/2 -translate-x-1/2">
           <span className="inline-flex h-[29px] items-center gap-[7px] rounded-[3px] bg-[#232322] px-[12px] font-mono text-[12px] text-cream">
             <span className="text-beta">BETA</span> Introducing: The OnBrand API
@@ -85,9 +85,9 @@ export default async function Landing() {
             ))}
           </pre>
         </div>
-        <div className="absolute top-[426px] right-0 left-0 px-6">
+        <div className="absolute top-[426px] right-0 left-0 px-6 max-md:top-[170px]">
           <HeroInput />
-          <h1 className="mt-[81px] text-center text-[32px] leading-none tracking-[-0.01em] text-cream">Make your agents be on brand</h1>
+          <h1 className="mt-[81px] text-center text-[32px] max-md:text-[26px] leading-none tracking-[-0.01em] text-cream">Make your agents be on brand</h1>
           <p className="mx-auto mt-[20px] max-w-[720px] text-center text-[17px] leading-[1.6] text-[#8b8d89]">
             Extract any brand system, search for style inspiration, and verify if it&apos;s staying on course.
             <br />

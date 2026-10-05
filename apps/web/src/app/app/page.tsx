@@ -34,7 +34,7 @@ export default async function HomePage() {
       <div className="mt-[40px]">
         <FeatureCards />
       </div>
-      <div className="mt-[64px] grid grid-cols-2 items-start gap-[8px]">
+      <div className="mt-[64px] grid grid-cols-2 items-start gap-[8px] max-lg:grid-cols-1">
         <div className="flex flex-col gap-[8px]">
           <CreditsCard data={data} />
           <ApiUsageCard data={data} rangeLabel={rangeLabel} />

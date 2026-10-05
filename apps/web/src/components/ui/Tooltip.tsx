@@ -7,7 +7,7 @@ export function InfoTip({ text, width = 256 }: { text: string; width?: number })
   const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-flex" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}>
-      <button type="button" className="text-mute hover:text-cream" aria-label="More info">
+      <button type="button" className="hit text-mute hover:text-cream" aria-label="More info">
         <Info />
       </button>
       {open && (

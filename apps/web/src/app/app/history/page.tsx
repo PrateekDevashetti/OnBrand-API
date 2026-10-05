@@ -35,11 +35,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     total = t;
     table = (
       <>
-        <div className="grid grid-cols-[1.1fr_1.1fr_1.1fr_1.1fr_0.85fr_24px] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
+        <div className="max-lg:min-w-[820px] grid grid-cols-[1.1fr_1.1fr_1.1fr_1.1fr_0.85fr_24px] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
           <span>Company</span><span>Extracted from</span><span>Request from</span><span>API Key</span><span>Status</span><span />
         </div>
         {rows.map((r) => (
-          <Link key={r.id} href={`/app/extractions/${r.id}`} className="data-row group grid-cols-[1.1fr_1.1fr_1.1fr_1.1fr_0.85fr_24px]">
+          <Link key={r.id} href={`/app/extractions/${r.id}`} className="max-lg:min-w-[820px] data-row group grid-cols-[1.1fr_1.1fr_1.1fr_1.1fr_0.85fr_24px]">
             <div>
               <div className="text-[13.5px] text-cream">{r.company}</div>
               <div className="mt-[4px] text-[11.5px] text-dim">{r.normalizedUrl}</div>
@@ -62,11 +62,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     count = total = rows.length;
     table = (
       <>
-        <div className="grid grid-cols-[1.6fr_1.6fr_0.6fr_1.4fr_0.6fr] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
+        <div className="max-lg:min-w-[820px] grid grid-cols-[1.6fr_1.6fr_0.6fr_1.4fr_0.6fr] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
           <span>Query</span><span>Query tags</span><span>Search depth</span><span>API Key</span><span>Status</span>
         </div>
         {rows.map((r) => (
-          <Link key={r.id} href={`/app/search?s=${r.id}`} className="data-row grid-cols-[1.6fr_1.6fr_0.6fr_1.4fr_0.6fr]">
+          <Link key={r.id} href={`/app/search?s=${r.id}`} className="max-lg:min-w-[820px] data-row grid-cols-[1.6fr_1.6fr_0.6fr_1.4fr_0.6fr]">
             <div>
               <div className="text-[11.5px] text-cream">{r.query}</div>
               <div className="mt-[10px] text-[11.5px] text-dim">{r.credits} credits · {fmt(r.createdAt)}</div>
@@ -86,11 +86,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     count = total = rows.length;
     table = (
       <>
-        <div className="grid grid-cols-[1fr_1fr_1fr_0.5fr] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
+        <div className="max-lg:min-w-[820px] grid grid-cols-[1fr_1fr_1fr_0.5fr] border-b border-[#232322] px-[30px] py-[24px] text-[13.5px] text-dim">
           <span>Page you built</span><span>Reference brand</span><span>API Key</span><span>Status</span>
         </div>
         {rows.map((r) => (
-          <Link key={r.id} href={`/app/adherence/${r.id}`} className="data-row grid-cols-[1fr_1fr_1fr_0.5fr]">
+          <Link key={r.id} href={`/app/adherence/${r.id}`} className="max-lg:min-w-[820px] data-row grid-cols-[1fr_1fr_1fr_0.5fr]">
             <div>
               <div className="text-[11.5px] text-cream">{r.designUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}</div>
               <div className="mt-[10px] text-[11.5px] text-dim">{r.score != null ? `${Math.round(r.score)}/100 · ` : ""}{fmt(r.createdAt)}</div>
@@ -105,13 +105,13 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   }
 
   return (
-    <div className="px-[50px] pt-[50px] pb-[40px]">
+    <div className="px-[50px] pt-[50px] pb-[40px] max-md:px-[20px] max-md:pt-[28px]">
       <h1 className="text-[37px] leading-none text-cream">History</h1>
       <p className="mt-[22px] text-[19px] text-dim">Your API history</p>
       <Suspense>
         <HistoryControls keys={keys} />
       </Suspense>
-      <div className="mt-[30px] overflow-hidden rounded-[2px] bg-card">
+      <div className="mt-[30px] overflow-hidden rounded-[2px] bg-card max-lg:overflow-x-auto">
         {table}
         {count === 0 && <div className="px-[30px] py-[40px] text-[13px] text-dim">Nothing here yet.</div>}
       </div>

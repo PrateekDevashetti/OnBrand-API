@@ -209,7 +209,7 @@ function Category({ cat, label, k, data }: { cat?: AdherenceCategory; label: str
         <div className="mt-[22px] rounded-[2px] bg-[#1c1c1c] px-[30px] py-[24px] font-mono text-[12px] text-dim">{data.status === "failed" ? `Failed: ${data.error}` : "Extracting both pages…"}</div>
       ) : (
         <div className="mt-[22px] rounded-[2px] bg-[#1c1c1c]">
-          <div className="grid grid-cols-2">
+          <div className="grid grid-cols-2 max-md:grid-cols-1">
             <div className="border-r border-[#2c2c2b] px-[30px] py-[26px]">
               <div className="mb-[18px] font-mono text-[11px] tracking-[0.08em] text-mute uppercase">Reference brand</div>
               {refB ? <CategoryBody k={k} brand={refB} /> : <p className="font-mono text-[12px] text-dim">Waiting for {label}…</p>}
@@ -222,7 +222,7 @@ function Category({ cat, label, k, data }: { cat?: AdherenceCategory; label: str
           {cat && (
             <div className="border-t border-[#2c2c2b] px-[30px] py-[24px]">
               <p className="text-[14px] text-cream">{cat.verdict}</p>
-              <div className="mt-[16px] grid grid-cols-3 gap-[24px] text-[12px]">
+              <div className="mt-[16px] grid grid-cols-3 gap-[24px] text-[12px] max-md:grid-cols-1">
                 {[
                   ["Matches", cat.matches, "text-ok"],
                   ["Deviations", cat.deviations, "text-bad"],
@@ -283,7 +283,7 @@ export function AdherenceView({ initial }: { initial: AdherenceData }) {
   return (
     <div className="relative px-[24px] pt-[14px] pb-[40px]">
       <div className="flex items-center justify-between">
-        <Link href="/app/adherence" aria-label="Back" className="text-cream hover:opacity-70">
+        <Link href="/app/adherence" aria-label="Back" className="hit text-cream hover:opacity-70">
           <ArrowLeft />
         </Link>
         <button
@@ -299,7 +299,7 @@ export function AdherenceView({ initial }: { initial: AdherenceData }) {
         </button>
       </div>
       <div className="mt-[44px] flex gap-[46px]">
-        <nav className="sticky top-[20px] ml-[18px] w-[166px] shrink-0 self-start">
+        <nav className="sticky top-[20px] ml-[18px] w-[166px] shrink-0 self-start max-lg:hidden">
           {NAV.map((n) => (
             <button
               key={n.key}
@@ -317,7 +317,7 @@ export function AdherenceView({ initial }: { initial: AdherenceData }) {
               <span className={`h-[7px] w-[7px] rounded-full ${running ? "pulse-dot bg-warn" : data.status === "failed" ? "bg-bad" : "bg-ok"}`} />
               {statusLine}
             </div>
-            <div className="mt-[52px] grid grid-cols-2 gap-[64px] px-[30px]">
+            <div className="mt-[52px] grid grid-cols-2 gap-[64px] px-[30px] max-md:grid-cols-1 max-md:gap-[32px] max-md:px-0">
               <SideHeader eyebrow="Reference brand" side={data.reference} url={data.reference_url} />
               <SideHeader eyebrow="Page you built" side={data.design} url={data.design_url} />
             </div>
@@ -333,7 +333,7 @@ export function AdherenceView({ initial }: { initial: AdherenceData }) {
                   </div>
                   <p className="mt-[24px] max-w-[640px] text-[14px] leading-[1.55] text-dim">{report.overall.summary}</p>
                 </div>
-                <div className="mt-[28px] grid grid-cols-7 gap-[12px]">
+                <div className="mt-[28px] grid grid-cols-7 gap-[12px] max-lg:grid-cols-4 max-sm:grid-cols-2">
                   {report.categories.map((c) => (
                     <div key={c.key}>
                       <div className="text-[11.5px] text-dim">{c.label}</div>

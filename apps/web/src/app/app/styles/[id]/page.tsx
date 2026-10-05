@@ -19,10 +19,10 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
   const pageTags = s.tags;
   return (
     <div className="mx-auto w-[1156px] max-w-[calc(100%-64px)] pt-[26px] pb-[40px]">
-      <Link href="/app/search" aria-label="Back" className="inline-block text-cream hover:opacity-70">
+      <Link href="/app/search" aria-label="Back" className="hit inline-block text-cream hover:opacity-70">
         <ArrowLeft width={26} height={20} />
       </Link>
-      <div className="mt-[24px] grid grid-cols-[minmax(0,620fr)_minmax(270px,436fr)] gap-[clamp(32px,5.2vw,100px)]">
+      <div className="mt-[24px] grid grid-cols-[minmax(0,620fr)_minmax(270px,436fr)] gap-[clamp(32px,5.2vw,100px)] max-lg:grid-cols-1">
         <a href={s.url} target="_blank" rel="noreferrer" className="block aspect-[620/576] self-start overflow-hidden rounded-[12px] bg-[#0e0e0e]">
           {s.screenshot && <img src={s.screenshot} alt={s.name} className="h-full w-full object-cover object-top" />}
         </a>
@@ -70,7 +70,7 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
           See all →
         </Link>
       </div>
-      <div className="mt-[26px] grid grid-cols-3 gap-x-[clamp(14px,1.25vw,24px)] gap-y-[30px]">
+      <div className="mt-[26px] grid grid-cols-3 gap-x-[clamp(14px,1.25vw,24px)] gap-y-[30px] max-md:grid-cols-1">
         {similar.map((x) => (
           <Link key={x.id} href={`/app/styles/${x.id}`} className="group block">
             <div className="aspect-[369/260] overflow-hidden rounded-[8px] bg-[#0e0e0e]">

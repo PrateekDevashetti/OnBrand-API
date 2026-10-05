@@ -52,7 +52,7 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
   const low = data.balance <= 5;
 
   return (
-    <div className="px-[50px] pt-[50px] pb-[40px]">
+    <div className="px-[50px] pt-[50px] pb-[40px] max-md:px-[20px] max-md:pt-[28px]">
       <h1 className="text-[37px] leading-none text-cream">Usage</h1>
       <p className="mt-[22px] text-[19px] text-dim">See what&apos;s running, what&apos;s idle, and what it&apos;s costing you.</p>
       <div className="mt-[34px] flex items-center justify-between">
@@ -62,7 +62,7 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
           <Select value={days} onChange={setDays} options={[{ value: "7", label: "Last 7 days" }, { value: "30", label: "Last 30 days" }, { value: "90", label: "Last 90 days" }]} />
         </div>
       </div>
-      <div className="mt-[24px] grid grid-cols-3 gap-[12px]">
+      <div className="mt-[24px] grid grid-cols-3 gap-[12px] max-lg:grid-cols-1">
         <div className="card flex h-[646px] min-w-0 flex-col px-[clamp(20px,1.875vw,36px)] pt-[36px] pb-[30px]">
           <div className="eyebrow text-[13.5px] text-cream">API Keys</div>
           <div className="mt-[84px] flex gap-[clamp(18px,1.77vw,34px)]">

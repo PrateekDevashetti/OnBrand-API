@@ -103,10 +103,10 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
   );
 
   return (
-    <div className={`relative flex flex-col pr-[18px] pl-[17px] ${atTop ? "pt-[12px]" : ""} ${shared ? "h-[calc(100vh-72px)]" : "h-full"}`}>
+    <div className={`relative flex flex-col pr-[18px] pl-[17px] max-md:px-[8px] ${atTop ? "pt-[12px]" : ""} ${shared ? "h-[calc(100vh-72px)]" : "h-full"}`}>
       <div className="flex h-[40px] shrink-0 items-center justify-between">
         {shared ? <span /> : (
-          <Link href={backHref} aria-label="Back" className="pl-[15px] text-cream transition-opacity hover:opacity-70">
+          <Link href={backHref} aria-label="Back" className="hit pl-[15px] text-cream transition-opacity hover:opacity-70">
             <ArrowLeft />
           </Link>
         )}
@@ -117,7 +117,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
         )}
       </div>
       <div className="mt-[10px] flex min-h-0 flex-1 items-stretch gap-[10px]">
-        <nav className={`w-[191px] shrink-0 overflow-y-auto rounded-t-[2px] bg-[#222222] px-[12px] pb-[24px] ${atTop ? "pt-[18px]" : "pt-0"}`}>
+        <nav className={`w-[191px] shrink-0 overflow-y-auto rounded-t-[2px] bg-[#222222] max-lg:hidden px-[12px] pb-[24px] ${atTop ? "pt-[18px]" : "pt-0"}`}>
           {NAV.map((n, i) =>
             n === "divider" ? (
               <div key={i} className="mx-[12px] mt-[17px] mb-[23px] h-px w-[136px] bg-[#3a3a39]" />
@@ -162,17 +162,17 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
           <S.Panel id="colors" title="Colours">{sec(b.colors, <S.ColorsSection brand={b} />)}</S.Panel>
           <S.Panel id="typography" title="Typography">{sec(b.typography, <S.TypographySection brand={b} />)}</S.Panel>
           <S.Panel id="surfaces" title="Surfaces">{sec(b.surfaces, <S.SurfacesSection brand={b} />)}</S.Panel>
-          <div className="grid grid-cols-2 items-start gap-[10px]">
+          <div className="grid grid-cols-2 items-start gap-[10px] max-lg:grid-cols-1">
             <S.Panel id="layout" title="Layout">{sec(b.layout, <S.LayoutSection brand={b} />)}</S.Panel>
             <S.Panel id="elevation" title="Elevation">{sec(b.elevation, <S.ElevationSection brand={b} />)}</S.Panel>
           </div>
           <S.Panel id="interactions" title="Interactions">{sec(b.interactions, <S.InteractionsSection brand={b} />)}</S.Panel>
-          <div className="grid grid-cols-2 items-start gap-[10px]">
+          <div className="grid grid-cols-2 items-start gap-[10px] max-lg:grid-cols-1">
             <S.Panel id="structure" title="Structure">{sec(b.structure, <S.StructureSection brand={b} />)}</S.Panel>
             <S.Panel id="dataDisplay" title="Data Display">{sec(b.dataDisplay, <S.DataDisplaySection brand={b} />)}</S.Panel>
           </div>
           <S.Panel id="motion" title="Motion Design">{sec(b.motion, <S.MotionSection brand={b} />)}</S.Panel>
-          <div className="grid grid-cols-2 items-start gap-[10px]">
+          <div className="grid grid-cols-2 items-start gap-[10px] max-lg:grid-cols-1">
             <S.Panel id="navigation" title="Navigation">{sec(b.navigation, <S.NavigationSection brand={b} />)}</S.Panel>
             <S.Panel id="icons" title="Icons">{sec(b.icons, <S.IconsSection brand={b} />)}</S.Panel>
           </div>

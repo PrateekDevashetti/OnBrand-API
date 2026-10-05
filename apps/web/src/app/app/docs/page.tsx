@@ -178,8 +178,8 @@ function H2({ id, children }: { id: string; children: React.ReactNode }) {
 
 export default function DocsPage() {
   return (
-    <div className="flex gap-[56px] px-[50px] pt-[50px] pb-[80px]">
-      <nav className="sticky top-[30px] w-[180px] shrink-0 self-start">
+    <div className="flex gap-[56px] px-[50px] pt-[50px] pb-[80px] max-md:px-[20px] max-md:pt-[28px]">
+      <nav className="sticky top-[30px] w-[180px] shrink-0 self-start max-lg:hidden">
         <div className="eyebrow mb-4">Docs</div>
         {TOC.map(([id, label]) => (
           <a key={id} href={`#${id}`} className="block py-[7px] text-[13.5px] text-dim hover:text-cream">
@@ -210,7 +210,7 @@ curl -s ${A}/extract/$ID/result -H 'X-API-Key: YOUR_API_KEY' | jq .status
 curl -s "${A}/extract/$ID/result?sections=colors,typography" -H 'X-API-Key: YOUR_API_KEY'`} />
 
         <H2 id="how">How it works</H2>
-        <div className="mt-5 grid grid-cols-3 gap-[12px]">
+        <div className="mt-5 grid grid-cols-3 gap-[12px] max-md:grid-cols-1">
           {[
             ["Extractor", "Renders the page in a real browser, measures computed styles, CSS, DOM structure and screenshots, then turns them into a brand system. Async job."],
             ["Search", "Ranks brands in the curated OnBrand index by your description or by similarity to one of your extractions. Synchronous."],
@@ -267,7 +267,7 @@ curl -s "${A}/extract/$ID/result?sections=colors,typography" -H 'X-API-Key: YOUR
             ["list_brand_adherence_jobs / get_credits", "History and balance."],
           ].map(([c, d]) => (
             <div key={c} className="flex gap-6 border-b border-[#232322] px-5 py-3 last:border-0">
-              <code className="w-[380px] shrink-0 font-mono text-[12px] text-cream">{c}</code>
+              <code className="w-[380px] shrink-0 font-mono text-[12px] text-cream max-lg:w-[46%] max-lg:break-all">{c}</code>
               <span className="text-dim">{d}</span>
             </div>
           ))}
@@ -324,7 +324,7 @@ console.log(verdict.score, verdict.fixes, verdict.recommendations);`}
             ["500 internal_error", "Something broke on our side. Retries are safe."],
           ].map(([c, d]) => (
             <div key={c} className="flex gap-6 border-b border-[#232322] px-5 py-3 last:border-0">
-              <code className="w-[300px] shrink-0 font-mono text-cream">{c}</code>
+              <code className="w-[300px] shrink-0 font-mono text-cream max-lg:w-[40%] max-lg:break-all">{c}</code>
               <span className="text-dim">{d}</span>
             </div>
           ))}

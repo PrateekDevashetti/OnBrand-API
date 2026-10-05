@@ -103,7 +103,7 @@ const CARDS = [
 
 export function FeatureCards() {
   return (
-    <div className="grid grid-cols-3 gap-[20px]">
+    <div className="grid grid-cols-3 gap-[20px] max-md:grid-cols-1">
       {CARDS.map(({ href, title, badge, body, Art }) => (
         <Link key={href} href={href} className="group block">
           <div className="h-[222px] overflow-hidden rounded-[14px] bg-card-2 transition-colors group-hover:bg-[#282827]">

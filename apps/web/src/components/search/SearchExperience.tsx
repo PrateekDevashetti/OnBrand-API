@@ -106,7 +106,7 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
                 <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.6 5 6.6l3-3" stroke="currentColor" strokeWidth="1.2" /></svg>
               </button>
               {filtersOpen && (
-                <div className="absolute top-[36px] left-0 z-30 grid w-[560px] grid-cols-4 gap-4 rounded-[8px] border border-line-2 bg-[#1f1f1f] p-4 shadow-xl">
+                <div className="absolute top-[36px] left-0 z-30 grid w-[560px] grid-cols-4 max-md:w-[calc(100vw-56px)] max-md:grid-cols-2 gap-4 rounded-[8px] border border-line-2 bg-[#1f1f1f] p-4 shadow-xl">
                   {Object.entries(FACETS).map(([k, items]) => (
                     <div key={k}>
                       <div className="mb-2 text-[11px] text-mute">{k}</div>
@@ -141,7 +141,7 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
           </div>
           <div className="mt-[20px] rounded-[14px] bg-card px-[30px] pt-[30px] pb-[24px]">
             {sorted.length ? (
-              <div className="grid grid-cols-3 gap-x-[28px] gap-y-[26px]">
+              <div className="grid grid-cols-3 gap-x-[28px] gap-y-[26px] max-lg:grid-cols-2 max-sm:grid-cols-1">
                 {sorted.map((s) => (
                   <ResultCard key={s.id} s={s} />
                 ))}
@@ -156,7 +156,7 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
       {!showResults && (
         <div className="relative">
           {!busy && (
-            <div className="mt-[30px] grid grid-cols-4 gap-[24px]">
+            <div className="mt-[30px] grid grid-cols-4 gap-[24px] max-md:grid-cols-2">
               {Object.entries(FACETS).map(([k, items]) => (
                 <div key={k}>
                   <div className="text-[12.5px] text-dim">{k}</div>

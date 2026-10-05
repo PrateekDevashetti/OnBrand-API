@@ -38,13 +38,13 @@ export function ProfileView({ initial, clerk }: { initial: P; clerk: boolean }) 
         <div className="text-[13.5px] font-medium text-cream">{title}</div>
         <div className="mt-[6px] text-[11.5px] text-dim">{desc}</div>
       </div>
-      <button type="button" onClick={onClick} className={`text-[11.5px] ${danger ? "text-dim hover:text-bad" : "text-dim hover:text-cream"}`}>
+      <button type="button" onClick={onClick} className={`hit text-[11.5px] ${danger ? "text-dim hover:text-bad" : "text-dim hover:text-cream"}`}>
         {action}
       </button>
     </div>
   );
   return (
-    <div className="px-[50px] pt-[52px] pb-[40px]">
+    <div className="px-[50px] pt-[52px] pb-[40px] max-md:px-[20px] max-md:pt-[28px]">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-[37px] leading-none text-cream">Profile Settings</h1>
@@ -54,7 +54,7 @@ export function ProfileView({ initial, clerk }: { initial: P; clerk: boolean }) 
           <LogoutIcon /> Logout
         </button>
       </div>
-      <div className="mt-[26px] grid grid-cols-2 gap-x-[24px] gap-y-[22px]">
+      <div className="mt-[26px] grid grid-cols-2 gap-x-[24px] gap-y-[22px] max-md:grid-cols-1">
         {field("Full Name", "name", "Full Name")}
         {field("Email Address", "email", "Email Address")}
         {field("Company Name", "companyName", "Company Name")}

@@ -46,7 +46,7 @@ export function CopyButton({ text, className = "" }: { text: string; className?:
         setDone(true);
         setTimeout(() => setDone(false), 1400);
       }}
-      className={`text-dim transition-colors hover:text-cream ${className}`}
+      className={`hit text-dim transition-colors hover:text-cream ${className}`}
     >
       {done ? <span className="font-mono text-[10px] text-ok">copied</span> : <CopyIcon />}
     </button>
