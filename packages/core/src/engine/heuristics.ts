@@ -491,9 +491,24 @@ export function heuristicGroup(key: GroupKey, capture: Capture, d: Digest): unkn
             : [],
         },
         icons: {
-          sets: s.icons.length
-            ? [{ name: iconStyle.startsWith("Line") ? "Outlined UI Icons" : "Solid UI Icons", format: "SVG", style: iconStyle, description: `${s.icons.length} inline SVG icons used across the interface.`, whenToUse: ["General UI elements", "Interactive labels"], sizes: [...new Set(s.icons.map((i) => `${i.w}px`))].slice(0, 3).join(" · "), examples: s.icons.map((i) => i.label).filter(Boolean).slice(0, 6) }]
-            : [],
+          // Group by size: UI icons (≥20px) and small caption/label icons (<20px), each with its own style.
+          sets: [
+            { list: s.icons.filter((i) => Math.max(i.w, i.h) >= 20), kind: "UI", use: ["General UI elements", "Form and status feedback"], what: "Standard UI icons used for actions, feedback and general interface elements." },
+            { list: s.icons.filter((i) => Math.max(i.w, i.h) < 20), kind: "Caption", use: ["Interactive labels", "Inline captions"], what: "Small functional icons used in interactive captions, links and tags." },
+          ]
+            .filter((g) => g.list.length)
+            .map((g) => {
+              const style = g.list.filter((i) => i.stroke && i.stroke !== "none").length > g.list.length / 2 ? "Line Art / Outlined" : "Solid / Filled";
+              return {
+                name: `${style.startsWith("Line") ? "Outlined" : "Solid"} ${g.kind} Icons`,
+                format: "SVG",
+                style,
+                description: `${g.what} ${g.list.length} found.`,
+                whenToUse: g.use,
+                sizes: [...new Set(g.list.map((i) => `${i.w}×${i.h}px`))].slice(0, 3).join(" · "),
+                examples: g.list.map((i) => i.label).filter(Boolean).slice(0, 6),
+              };
+            }),
         },
         motion: {
           patterns: [s.nav?.position === "fixed" || s.nav?.position === "sticky" ? "sticky header" : "", ...feats.filter((f) => /video|marquee|carousel/.test(f)).map((f) => f.replace("background video", "video background")), s.transitions.length ? "hover transform" : "", s.keyframes.some((k) => /fade|in/i.test(k.name)) ? "scroll reveal" : ""].filter(Boolean),

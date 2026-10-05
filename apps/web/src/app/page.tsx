@@ -84,9 +84,11 @@ export default async function Landing() {
         </pre>
         <div className="absolute top-[426px] right-0 left-0 px-6">
           <HeroInput />
-          <h1 className="mt-[87px] text-center text-[32px] leading-none tracking-[-0.01em] text-cream">Make your agents be on brand</h1>
-          <p className="mx-auto mt-[24px] max-w-[680px] text-center text-[17px] leading-[1.6] text-[#8b8d89]">
-            Extract any brand system, search for style inspiration, and verify if it&apos;s staying on course. Built for gen AI applications, agents and developers.
+          <h1 className="mt-[81px] text-center text-[32px] leading-none tracking-[-0.01em] text-cream">Make your agents be on brand</h1>
+          <p className="mx-auto mt-[20px] max-w-[720px] text-center text-[17px] leading-[1.6] text-[#8b8d89]">
+            Extract any brand system, search for style inspiration, and verify if it&apos;s staying on course.
+            <br />
+            Built for gen AI applications, agents and developers.
           </p>
         </div>
       </section>

@@ -753,17 +753,17 @@ export function NavigationSection({ brand }: { brand: Partial<BrandSystem> }) {
   return (
     <>
       <Eyebrow>Top Navigation</Eyebrow>
-      <div className="grid grid-cols-2">
-        <div className="flex items-center justify-between border-r border-[#333] py-[8px] pr-[16px]">
+      <div className="mt-[3px] grid grid-cols-2">
+        <div className="flex items-center justify-between border-r border-[#333] py-[12px] pr-[16px]">
           <span className="text-[13px] text-dim">Height</span>
           <span className="rounded-[4px] bg-[#2a2a2a] px-[9px] py-[5px] text-[12px] text-dim">{n.height || "—"}</span>
         </div>
-        <div className="flex items-center justify-between py-[8px] pl-[16px]">
+        <div className="flex items-center justify-between py-[12px] pl-[16px]">
           <span className="text-[13px] text-dim">Position</span>
           <span className="rounded-[4px] bg-[#2a2a2a] px-[9px] py-[5px] font-mono text-[12px] text-dim">{n.position || "—"}</span>
         </div>
       </div>
-      <Card className="mt-[16px]">
+      <Card className="mt-[16px] py-[13px]">
         <Eyebrow className="text-[11px]">Background</Eyebrow>
         <div className="flex items-center gap-[12px]">
           <span className="h-[30px] w-[30px] rounded-[4px] border border-white/10" style={{ background: n.background }} />

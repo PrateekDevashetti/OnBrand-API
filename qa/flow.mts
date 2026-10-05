@@ -3,6 +3,11 @@ import { chromium } from "playwright-core";
 import { resolveChromium } from "../packages/core/src/engine/browser";
 
 const base = process.env.BASE ?? "http://localhost:3100";
+// Local runs: the QA fixture leaves the dev account nearly empty, so top it up first.
+if (!process.env.BASE && process.env.DATABASE_URL) {
+  const { execFileSync } = await import("node:child_process");
+  execFileSync("psql", [process.env.DATABASE_URL, "-qc", "update users set credits = greatest(credits, 50) where id = 'dev_user'"]);
+}
 const browser = await chromium.launch({ executablePath: resolveChromium(), headless: true });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const errors: string[] = [];
@@ -20,8 +25,9 @@ async function step(name: string, fn: () => Promise<string | void>) {
 
 await step("landing → extract handoff", async () => {
   await page.goto(base + "/");
-  await page.getByLabel("Website URL").fill("https://resend.com");
-  await page.getByRole("button", { name: "Extract" }).click();
+  const url = page.getByLabel("Website URL");
+  await url.fill("https://resend.com");
+  await url.locator("xpath=ancestor::form").getByRole("button", { name: "Extract" }).click();
   await page.waitForURL(/\/app\/extract\?url=/);
   const v = await page.locator('input[placeholder="https://add-url-here.com"]').inputValue();
   if (v !== "https://resend.com") throw new Error(`prefill was ${v}`);

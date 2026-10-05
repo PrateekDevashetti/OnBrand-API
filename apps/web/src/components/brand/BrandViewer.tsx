@@ -61,7 +61,12 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
     const onScroll = () => {
       const secs = Array.from(document.querySelectorAll<HTMLElement>("[data-section]"));
       let cur = "overview";
-      for (const s of secs) if (s.getBoundingClientRect().top < 180) cur = s.dataset.section!;
+      // Side-by-side panels share a top: the left (first) one wins the tie.
+      let curTop = -Infinity;
+      for (const s of secs) {
+        const top = s.getBoundingClientRect().top;
+        if (top < 180 && top > curTop + 2) (cur = s.dataset.section!), (curTop = top);
+      }
       setActive(cur);
       setAtTop((panel instanceof HTMLElement ? panel.scrollTop : window.scrollY) < 8);
     };
