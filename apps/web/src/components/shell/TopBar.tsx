@@ -15,7 +15,7 @@ export function TopBar() {
         <a href="mailto:support@trycanopy.space?subject=OnBrand%20API%20support" className="btn-outline max-md:hidden">
           Support
         </a>
-        <Link href="/app/docs" className="btn-outline max-md:hidden">
+        <Link href="/docs" className="btn-outline max-md:hidden">
           Open Docs
         </Link>
         <Link href="/app/billing" aria-label="Add credits" className="flex items-center gap-[8px] text-[13.5px] text-cream transition-opacity hover:opacity-80 md:ml-[20px]">

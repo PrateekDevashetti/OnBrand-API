@@ -22,7 +22,7 @@ const GROUPS: Group[] = [
       { href: "/app/usage", label: "Usage" },
       { href: "/app/history", label: "History" },
       { href: "/app/api-keys", label: "API Keys" },
-      { href: "/app/docs", label: "Documentation" },
+      { href: "/docs", label: "Documentation" },
       { href: "/app/billing", label: "Billing" },
       { href: "/app/profile", label: "Profile" },
     ],

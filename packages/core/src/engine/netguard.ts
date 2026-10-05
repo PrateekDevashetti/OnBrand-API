@@ -66,6 +66,9 @@ export function assertSafeUrlShape(raw: string): URL {
   if (host === "localhost" || !host.includes(".") || BLOCKED_SUFFIXES.some((s) => host.endsWith(s))) {
     throw new UnsafeUrlError("That host is not publicly reachable.");
   }
+  // Site owners who opted out of OnBrand crawling (comma-separated domains; subdomains included).
+  const optedOut = (process.env.ONBRAND_BLOCKED_DOMAINS ?? "").split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+  if (optedOut.some((d) => host === d || host.endsWith(`.${d}`))) throw new UnsafeUrlError("This site has opted out of OnBrand extraction.");
   return u;
 }
 

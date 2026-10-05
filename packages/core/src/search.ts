@@ -253,7 +253,9 @@ export async function styleSearch(actor: Actor, input: SearchInput) {
   const limit = Math.max(1, Math.min(input.limit ?? 6, 24));
   const filters = input.filters ?? [];
   const id = newId("srch");
-  await debit(actor.userId, depth === "deep" ? PRICING.searchDeep : PRICING.searchLight, "search", id);
+  // Deep search is only billed as deep when the LLM re-rank can actually run.
+  const billDeep = depth === "deep" && llmAvailable();
+  await debit(actor.userId, billDeep ? PRICING.searchDeep : PRICING.searchLight, "search", id);
 
   const where = input.where ?? {};
   const hasWhere = Object.keys(where).length > 0;
@@ -319,7 +321,7 @@ export async function styleSearch(actor: Actor, input: SearchInput) {
   if (depth !== "deep" || !llmAvailable()) queryTags = refinements(results, toks);
 
   const latencyMs = Date.now() - started;
-  const credits = depth === "deep" ? PRICING.searchDeep : PRICING.searchLight;
+  const credits = billDeep ? PRICING.searchDeep : PRICING.searchLight;
   await db.insert(searches).values({ id, userId: actor.userId, apiKeyId: actor.apiKeyId ?? null, query: input.query, tags: queryTags, filters: { facets: filters, ...where }, depth, limit, results, credits, requestFrom: actor.via, latencyMs });
   await recordUsage(actor, "search", credits, id, latencyMs);
   return { id, query: input.query, depth, tags: queryTags, filters: where, results, latencyMs };

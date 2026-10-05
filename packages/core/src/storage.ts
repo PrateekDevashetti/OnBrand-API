@@ -25,7 +25,7 @@ function hmac(k: Buffer | string, d: string) {
 const sha = (d: Buffer | string) => crypto.createHash("sha256").update(d).digest("hex");
 
 /** AWS Signature V4 for a single-object request (path-style). */
-function signed(method: "GET" | "PUT", key: string, body: Buffer | null) {
+function signed(method: "GET" | "PUT" | "DELETE", key: string, body: Buffer | null) {
   const c = s3()!;
   // S3_PREFIX namespaces OnBrand objects inside a shared bucket (e.g. "onbrand/").
   const objectKey = `${(process.env.S3_PREFIX ?? "").replace(/^\/+/, "")}${key}`;
@@ -74,6 +74,17 @@ export async function getObject(key: string): Promise<Buffer | null> {
   } catch {
     return null;
   }
+}
+
+/** Remove an object (missing objects are ignored). */
+export async function deleteObject(key: string): Promise<void> {
+  const k = safeKey(key);
+  if (s3()) {
+    const { url, headers } = signed("DELETE", k, null);
+    await fetch(url, { method: "DELETE", headers }).catch(() => {});
+    return;
+  }
+  await fs.rm(path.join(env.storageDir, k), { force: true }).catch(() => {});
 }
 
 export function publicUrl(key: string | null | undefined): string | null {

@@ -1,7 +1,7 @@
 import { logged } from "@/lib/logged";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { db, schema, getBalance } from "@onbrand/core";
+import { deleteObject, db, schema, getBalance } from "@onbrand/core";
 import { getActor, getSessionUser } from "@/lib/auth";
 import { json, unauthorized, handleError } from "@/lib/http";
 
@@ -33,6 +33,9 @@ async function handleDELETE() {
   const user = await getSessionUser();
   if (!user) return unauthorized();
   const id = user.id;
+  // Remove stored artifacts (screenshots, HTML, CSS) before the rows that reference them.
+  const rows = await db.select({ a: schema.extractions.screenshotPath, b: schema.extractions.heroPath, c: schema.extractions.htmlPath, d: schema.extractions.cssPath }).from(schema.extractions).where(eq(schema.extractions.userId, id));
+  await Promise.all(rows.flatMap((r) => [r.a, r.b, r.c, r.d]).filter((k): k is string => !!k).map((k) => deleteObject(k)));
   for (const t of [schema.apiKeys, schema.extractions, schema.searches, schema.adherenceRuns, schema.usageEvents, schema.creditLedger] as const) {
     await db.delete(t).where(eq(t.userId, id));
   }

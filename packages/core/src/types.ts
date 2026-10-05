@@ -178,6 +178,8 @@ export type BrandSystem = {
   domain: string;
   extractedAt: string;
   depth: "deep" | "light";
+  /** Whether the LLM pass ran for every section, none (deterministic engine) or some. */
+  synthesis?: "llm" | "heuristic" | "mixed";
   logo: { url: string; svg?: string; alt: string } | null;
   favicon: string | null;
   identity: BrandIdentity;

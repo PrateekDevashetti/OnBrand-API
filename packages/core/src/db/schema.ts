@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   companyWebsite: text("company_website").notNull().default(""),
   plan: text("plan").notNull().default("free"),
   credits: integer("credits").notNull().default(20),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -203,6 +205,23 @@ export const apiRequests = pgTable(
   },
   (t) => [index("api_requests_created_idx").on(t.createdAt), index("api_requests_route_idx").on(t.route, t.createdAt)],
 );
+
+/** Processed Stripe webhook events (idempotency). */
+export const billingEvents = pgTable("billing_events", {
+  id: text("id").primaryKey(),
+  type: text("type").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Upgrade requests captured while self-serve checkout is not configured. */
+export const billingRequests = pgTable("billing_requests", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  email: text("email").notNull().default(""),
+  plan: text("plan").notNull(),
+  period: text("period").notNull().default("monthly"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 /** Fixed-window request counters for rate limiting (one row per subject × bucket × minute). */
 export const rateCounters = pgTable(

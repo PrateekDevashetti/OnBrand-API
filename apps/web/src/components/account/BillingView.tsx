@@ -1,15 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Segmented } from "../ui/Segmented";
 
 type Plan = { id: string; name: string; monthly: number | null; credits: number | null; features: readonly string[]; cta: string };
 
-export function BillingView({ plans, discount, balance, testCredits }: { plans: readonly Plan[]; discount: number; balance: number; testCredits: boolean }) {
+export function BillingView({ plans, discount, balance, testCredits, checkout }: { plans: readonly Plan[]; discount: number; balance: number; testCredits: boolean; checkout: boolean }) {
   const [period, setPeriod] = useState<"monthly" | "annual">("monthly");
   const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState("");
   const router = useRouter();
+  const params = useSearchParams();
+  useEffect(() => {
+    if (params.get("checkout") === "success") setMsg("Payment received — your credits will appear in a few seconds.");
+    if (params.get("checkout") === "cancelled") setMsg("Checkout cancelled. Nothing was charged.");
+  }, [params]);
+
+  /** Stripe Checkout when configured; otherwise record an upgrade request for follow-up. */
+  async function buy(kind: "plan" | "topup", plan: string) {
+    if (plan === "enterprise") return void (window.location.href = "mailto:hello@trycanopy.space?subject=OnBrand%20Enterprise");
+    setBusy(`${kind}:${plan}`);
+    setMsg("");
+    try {
+      if (checkout) {
+        const res = await fetch("/api/v1/billing/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, plan, period }) });
+        const j = await res.json().catch(() => ({}));
+        if (res.ok && j.url) return void (window.location.href = j.url);
+        if (j?.error?.code !== "billing_unavailable") return setMsg(j?.error?.message ?? "Checkout failed. Try again.");
+      }
+      await fetch("/api/v1/billing/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: kind === "topup" ? "topup" : plan, period }) });
+      setMsg("Request received — we'll email you a payment link within one business day.");
+    } finally {
+      setBusy("");
+    }
+  }
   const price = (m: number) => (period === "monthly" ? m : Math.round(m * (1 - discount)));
   return (
     <div className="px-[50px] pt-[50px] pb-[40px] max-md:px-[20px] max-md:pt-[28px]">
@@ -41,19 +66,32 @@ export function BillingView({ plans, discount, balance, testCredits }: { plans: 
             </ul>
             <button
               type="button"
-              onClick={() => (p.monthly == null ? (window.location.href = "mailto:hello@trycanopy.space?subject=OnBrand%20Enterprise") : setMsg("Checkout is being connected — reach us at hello@trycanopy.space to upgrade today."))}
-              className="mt-auto h-[32px] w-full rounded-[2px] border border-cream/90 text-[15px] text-cream transition-colors hover:bg-cream hover:text-ink"
+              onClick={() => buy("plan", p.id)}
+              disabled={busy === `plan:${p.id}`}
+              className="mt-auto h-[32px] w-full rounded-[2px] border border-cream/90 text-[15px] text-cream transition-colors hover:bg-cream hover:text-ink disabled:opacity-60"
             >
-              {p.cta}
+              {busy === `plan:${p.id}` ? "Opening checkout…" : p.cta}
             </button>
           </div>
         ))}
       </div>
-      {msg && <p className="mt-4 text-[13px] text-warn">{msg}</p>}
+      {msg && <p role="status" className="mt-4 text-[13px] text-cream">{msg}</p>}
+      <div className="mt-[28px] flex flex-wrap items-center gap-[12px] rounded-[2px] bg-card px-[30px] py-[20px]">
+        <div className="mr-auto">
+          <div className="text-[15px] text-cream">Top up credits</div>
+          <div className="mt-[4px] text-[13px] text-dim">One-off packs. Credits never expire while your account is active.</div>
+        </div>
+        {plans.filter((p) => p.monthly != null).map((p) => (
+          <button key={p.id} type="button" onClick={() => buy("topup", p.id)} disabled={busy === `topup:${p.id}`} className="btn-outline h-[34px] text-[13.5px] disabled:opacity-60">
+            {p.credits!.toLocaleString()} credits · ${p.monthly}
+          </button>
+        ))}
+      </div>
       <div className="mt-[36px] space-y-[4px] text-[15px]">
         <div><span className="text-cream">Search</span> <span className="text-dim">Light 1 credit, Deep 2 credits</span></div>
         <div><span className="text-cream">Extraction</span> <span className="text-dim">2 credits</span> <span className="text-mute">· cached results are free</span></div>
         <div><span className="text-cream">Verifier</span> <span className="text-dim">2 credits</span></div>
+        <div className="pt-[10px] text-[13px] text-dim">600 credits ≈ 300 brand extractions, or 600 light searches. Failed jobs are refunded automatically.</div>
       </div>
       {testCredits && (
         <div id="coupon" className="mt-[36px] flex items-center gap-4 rounded-[6px] border border-dashed border-line-2 px-5 py-4">

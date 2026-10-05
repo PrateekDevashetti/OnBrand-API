@@ -161,7 +161,7 @@ export function ProductTour() {
         </div>
         <div>
           <p className="max-w-[580px] text-[21px] leading-[28px]">Extraction, search and verification run on the same engine, so the values your agent builds with are the same values it&apos;s checked against.</p>
-          <Link href="/app/docs" className="mt-[30px] inline-block font-mono text-[15px] text-[#6c6e6a] hover:text-[#111]">
+          <Link href="/docs" className="mt-[30px] inline-block font-mono text-[15px] text-[#6c6e6a] hover:text-[#111]">
             Read the docs
           </Link>
         </div>

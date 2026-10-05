@@ -104,7 +104,17 @@ export function OverviewSection({
     <section id="sec-overview" data-section="overview" className="scroll-mt-4 rounded-[2px] bg-[#222222] px-[21px] pt-[20px] pb-[24px]">
       <div className="flex items-center justify-between">
         <h2 className="text-[18px] text-cream">Overview</h2>
-        <span className={`rounded-[4px] px-[10px] py-[5px] text-[12px] capitalize ${statusCls}`}>{status === "running" || status === "queued" ? "Extracting" : status}</span>
+        <div className="flex items-center gap-[8px]">
+          {status === "completed" && brand?.synthesis && brand.synthesis !== "llm" && (
+            <span
+              title="The AI review pass did not run for every section; values are measured directly from the page by the deterministic engine."
+              className="rounded-[4px] bg-[#2a2a2a] px-[10px] py-[5px] text-[12px] text-dim"
+            >
+              {brand.synthesis === "heuristic" ? "Measured engine" : "Partly measured"}
+            </span>
+          )}
+          <span className={`rounded-[4px] px-[10px] py-[5px] text-[12px] capitalize ${statusCls}`}>{status === "running" || status === "queued" ? "Extracting" : status}</span>
+        </div>
       </div>
       <div className="px-[3px]">
         <h3 className="mt-[20px] text-[32px] leading-none text-cream">{id?.companyName || new URL(url).hostname.replace(/^www\./, "")}</h3>

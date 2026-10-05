@@ -41,7 +41,7 @@ export default async function Landing() {
         <nav className="absolute left-1/2 flex -translate-x-1/2 gap-[39px] text-[15px] text-cream max-md:hidden [&>a]:py-[6px]">
           <a href="https://trycanopy.space" className="hover:opacity-60">Canvas</a>
           <Link href="#product" className="hover:opacity-60">Product</Link>
-          <Link href="/app/docs" className="hover:opacity-60">Docs</Link>
+          <Link href="/docs" className="hover:opacity-60">Docs</Link>
           <Link href="#pricing" className="hover:opacity-60">Pricing</Link>
         </nav>
         <Link href="/app" className="flex h-[37px] w-[202px] max-sm:w-[150px] items-center justify-center rounded-[4px] border border-cream font-mono text-[15px] tracking-[0.02em] transition-colors hover:bg-cream hover:text-ink">
@@ -113,7 +113,7 @@ export default async function Landing() {
         </div>
         <div className="flex gap-6">
           <a href="https://trycanopy.space" className="hover:text-cream">Canopy Canvas</a>
-          <Link href="/app/docs" className="hover:text-cream">Docs</Link>
+          <Link href="/docs" className="hover:text-cream">Docs</Link>
           <Link href="/app" className="hover:text-cream">Dashboard</Link>
         </div>
       </footer>

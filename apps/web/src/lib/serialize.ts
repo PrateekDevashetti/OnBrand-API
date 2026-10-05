@@ -16,6 +16,7 @@ export async function serializeExtraction(row: ExtractionRow, opts: { includeBra
     domain: row.domain,
     company: row.company,
     depth: row.depth,
+    synthesis: row.brand?.synthesis ?? null,
     source: row.source,
     pages: row.pagesMode,
     sections: row.sections ?? null,

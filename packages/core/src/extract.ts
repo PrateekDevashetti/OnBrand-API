@@ -180,7 +180,9 @@ export async function runExtraction(id: string, maxPages?: number) {
     for (const g of groups) await setStage(id, g, "running");
     let lock = Promise.resolve();
     const merged: Record<string, unknown> = { ...partial };
+    const stats = { groups: 0, fallbacks: 0 };
     const result = await synthesize(capture, {
+      stats,
       depth: row.depth as "deep" | "light",
       groups,
       onGroupDone: async (key, part) => {
@@ -198,6 +200,7 @@ export async function runExtraction(id: string, maxPages?: number) {
 
     await setStage(id, "finalize", "running");
     let brand = merged as BrandSystem;
+    brand.synthesis = stats.fallbacks === 0 && stats.groups > 0 ? "llm" : stats.fallbacks >= stats.groups ? "heuristic" : "mixed";
     brand.pages = s.links.slice(0, 60);
     if (brand.icons) brand.icons = { ...brand.icons, svgs: s.icons.slice(0, 16).map((i) => ({ name: i.label || "icon", svg: i.svg })) };
     if (brand.colors) {
