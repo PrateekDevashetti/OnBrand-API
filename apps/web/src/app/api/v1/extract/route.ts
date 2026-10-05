@@ -1,3 +1,4 @@
+import { logged } from "@/lib/logged";
 import { z } from "zod";
 import { createExtraction, getExtraction, listExtractions } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
@@ -15,7 +16,7 @@ const Body = z.object({
   max_pages: z.number().int().min(1).max(20).optional(),
 });
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   try {
     const actor = await getActor(req, "api");
     if (!actor) return unauthorized();
@@ -42,10 +43,14 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const sp = new URL(req.url).searchParams;
   const { rows, total } = await listExtractions(actor.userId, { q: sp.get("q") ?? undefined, status: sp.get("status") ?? undefined, limit: Number(sp.get("limit") ?? 20), offset: Number(sp.get("offset") ?? 0) });
   return json({ data: rows, total });
 }
+
+export const POST = logged("POST /v1/extract", handlePOST);
+
+export const GET = logged("GET /v1/extract", handleGET);

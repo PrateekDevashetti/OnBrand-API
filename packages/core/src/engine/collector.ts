@@ -299,8 +299,17 @@ export const COLLECTOR_SOURCE = String.raw`
 
   // --- sections (top-level blocks)
   const sectionEls = [];
+  // Find the level where the page actually splits into stacked full-width blocks.
   const main = document.querySelector('main') || document.body;
-  const consider = Array.from(main.children).length > 2 ? Array.from(main.children) : Array.from(document.querySelectorAll('section'));
+  const bigKids = (el) => Array.from(el.children).filter((c) => { const r = c.getBoundingClientRect(); return r.height >= 60 && r.width >= vw * 0.5; });
+  let container = main;
+  for (let i = 0; i < 4 && bigKids(container).length < 3; i++) {
+    const kids = bigKids(container);
+    if (kids.length !== 1) break;
+    container = kids[0];
+  }
+  let consider = bigKids(container);
+  if (consider.length < 3) consider = Array.from(document.querySelectorAll('section'));
   for (const el of consider.concat(Array.from(document.querySelectorAll('footer')))) {
     const r = el.getBoundingClientRect();
     if (r.height < 60 || r.width < vw * 0.5) continue;

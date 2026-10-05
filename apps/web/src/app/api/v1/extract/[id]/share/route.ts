@@ -1,3 +1,4 @@
+import { logged } from "@/lib/logged";
 import crypto from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, getExtraction, schema } from "@onbrand/core";
@@ -6,7 +7,7 @@ import { json, unauthorized, apiError } from "@/lib/http";
 import { config } from "@/lib/config";
 
 /** Create (or return) a public, read-only share link for an extraction. */
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const { id } = await ctx.params;
@@ -19,3 +20,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
   return json({ url: `${config.appUrl}/share/b/${token}` });
 }
+
+export const POST = logged("POST /v1/extract/[id]/share", handlePOST);

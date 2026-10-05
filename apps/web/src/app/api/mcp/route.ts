@@ -1,3 +1,4 @@
+import { logged } from "@/lib/logged";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { getActor } from "@/lib/auth";
 import { buildMcpServer } from "@/lib/mcp";
@@ -25,6 +26,6 @@ async function handle(req: Request) {
   }
 }
 
-export const POST = handle;
-export const GET = handle;
-export const DELETE = handle;
+export const POST = logged("/api/mcp", handle, "mcp");
+export const GET = logged("/api/mcp", handle, "mcp");
+export const DELETE = logged("/api/mcp", handle, "mcp");

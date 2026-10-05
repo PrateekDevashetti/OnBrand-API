@@ -1,10 +1,11 @@
+import { logged } from "@/lib/logged";
 import { getAdherence } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
 import { json, unauthorized, apiError } from "@/lib/http";
 import { serializeAdherence } from "@/lib/serialize";
 import { loadAdherence } from "@/lib/adherence";
 
-export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handleGET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const { id } = await ctx.params;
@@ -16,3 +17,5 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   if (!row || row.userId !== actor.userId) return apiError(404, "not_found", "Adherence run not found");
   return json(serializeAdherence(row));
 }
+
+export const GET = logged("GET /v1/adherence/[id]", handleGET);

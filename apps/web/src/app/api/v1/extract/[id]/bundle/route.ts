@@ -1,9 +1,10 @@
+import { logged } from "@/lib/logged";
 import { getExtraction, getObject, zip, brandBrief } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
 import { unauthorized, apiError } from "@/lib/http";
 
 /** Everything for one extraction as a .zip: brand.json, tokens.css, brief.md, source.html, styles.css, screenshot.jpg */
-export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handleGET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const { id } = await ctx.params;
@@ -24,3 +25,5 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     headers: { "Content-Type": "application/zip", "Content-Disposition": `attachment; filename="${row.domain}-onbrand.zip"` },
   });
 }
+
+export const GET = logged("GET /v1/extract/[id]/bundle", handleGET);

@@ -1,3 +1,4 @@
+import { logged } from "@/lib/logged";
 import { z } from "zod";
 import { createAdherence, getAdherence, listAdherence } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
@@ -8,7 +9,7 @@ export const maxDuration = 300;
 
 const Body = z.object({ reference: z.string().min(3), design: z.string().min(3) });
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   try {
     const actor = await getActor(req, "api");
     if (!actor) return unauthorized();
@@ -28,8 +29,12 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   return json({ data: await listAdherence(actor.userId, { limit: 50 }) });
 }
+
+export const POST = logged("POST /v1/adherence", handlePOST);
+
+export const GET = logged("GET /v1/adherence", handleGET);

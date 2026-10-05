@@ -1,3 +1,4 @@
+import { logged } from "@/lib/logged";
 import { z } from "zod";
 import { getExtraction, enhancePrompt, recordUsage } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
@@ -5,7 +6,7 @@ import { json, unauthorized, apiError, handleError } from "@/lib/http";
 
 export const maxDuration = 120;
 
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const actor = await getActor(req, "api");
     if (!actor) return unauthorized();
@@ -21,3 +22,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return handleError(e);
   }
 }
+
+export const POST = logged("POST /v1/extract/[id]/enhance", handlePOST);

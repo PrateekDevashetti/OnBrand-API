@@ -14,3 +14,4 @@ export { browserAvailable } from "./engine/browser";
 export { llmAvailable } from "./llm";
 export * from "./zip";
 export * from "./plans";
+export * from "./telemetry";

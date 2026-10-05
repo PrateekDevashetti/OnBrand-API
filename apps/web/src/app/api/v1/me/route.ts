@@ -1,10 +1,11 @@
+import { logged } from "@/lib/logged";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db, schema, getBalance } from "@onbrand/core";
 import { getActor, getSessionUser } from "@/lib/auth";
 import { json, unauthorized, handleError } from "@/lib/http";
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const u = await db.query.users.findFirst({ where: eq(schema.users.id, actor.userId) });
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
 
 const Patch = z.object({ name: z.string().max(120).optional(), email: z.string().max(200).optional(), company_name: z.string().max(120).optional(), company_website: z.string().max(300).optional() });
 
-export async function PATCH(req: Request) {
+async function handlePATCH(req: Request) {
   try {
     const user = await getSessionUser();
     if (!user) return unauthorized();
@@ -28,7 +29,7 @@ export async function PATCH(req: Request) {
   }
 }
 
-export async function DELETE() {
+async function handleDELETE() {
   const user = await getSessionUser();
   if (!user) return unauthorized();
   const id = user.id;
@@ -42,3 +43,9 @@ export async function DELETE() {
   }
   return json({ ok: true });
 }
+
+export const GET = logged("GET /v1/me", handleGET);
+
+export const PATCH = logged("PATCH /v1/me", handlePATCH);
+
+export const DELETE = logged("DELETE /v1/me", handleDELETE);

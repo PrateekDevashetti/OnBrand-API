@@ -180,3 +180,37 @@ export const jobs = pgTable(
   },
   (t) => [index("jobs_status_idx").on(t.status, t.createdAt)],
 );
+
+/** Every API/MCP request: method, route, status, latency — the observability backbone. */
+export const apiRequests = pgTable(
+  "api_requests",
+  {
+    id: text("id").primaryKey(),
+    method: text("method").notNull(),
+    route: text("route").notNull(),
+    status: integer("status").notNull(),
+    latencyMs: integer("latency_ms").notNull(),
+    keyPrefix: text("key_prefix"),
+    via: text("via").notNull().default("api"), // api | mcp | playground
+    error: text("error"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("api_requests_created_idx").on(t.createdAt), index("api_requests_route_idx").on(t.route, t.createdAt)],
+);
+
+/** Human feedback on outputs — feeds evals and failure investigation. */
+export const feedback = pgTable(
+  "feedback",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    kind: text("kind").notNull(), // extraction | search | adherence
+    refId: text("ref_id").notNull(),
+    section: text("section"),
+    rating: integer("rating").notNull(), // 1 = good, -1 = bad
+    comment: text("comment"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("feedback_ref_idx").on(t.refId)],
+);

@@ -1,9 +1,10 @@
+import { logged } from "@/lib/logged";
 import { getExtraction } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
 import { json, unauthorized, apiError } from "@/lib/http";
 
 /** Design tokens as CSS variables, JSON, or a Tailwind v4 @theme block. */
-export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handleGET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const { id } = await ctx.params;
@@ -23,3 +24,5 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   }
   return json(t);
 }
+
+export const GET = logged("GET /v1/extract/[id]/tokens", handleGET);

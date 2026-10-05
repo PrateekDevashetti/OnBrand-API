@@ -1,8 +1,9 @@
+import { logged } from "@/lib/logged";
 import { getStyle } from "@onbrand/core";
 import { getActor } from "@/lib/auth";
 import { json, unauthorized, apiError } from "@/lib/http";
 
-export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handleGET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getActor(req, "api");
   if (!actor) return unauthorized();
   const { id } = await ctx.params;
@@ -10,3 +11,5 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   if (!s) return apiError(404, "not_found", "Style not found");
   return json({ ...s.style, similar: s.similar });
 }
+
+export const GET = logged("GET /v1/styles/[id]", handleGET);
