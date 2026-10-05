@@ -88,7 +88,7 @@ function digestFor(key: GroupKey, d: ReturnType<typeof digest>) {
   }
 }
 
-export type SynthOptions = { depth: "deep" | "light"; onGroupDone?: (key: GroupKey) => void | Promise<void> };
+export type SynthOptions = { depth: "deep" | "light"; onGroupDone?: (key: GroupKey, result: Record<string, unknown>) => void | Promise<void> };
 
 async function runGroup<K extends GroupKey>(key: K, capture: Capture, d: ReturnType<typeof digest>, opts: SynthOptions): Promise<GroupResult<K>> {
   const fallback = () => H.heuristicGroup(key, capture, d) as GroupResult<K>;
@@ -126,7 +126,7 @@ export async function synthesize(capture: Capture, opts: SynthOptions) {
   const results = await Promise.all(
     keys.map(async (k) => {
       const r = await runGroup(k, capture, d, opts);
-      await opts.onGroupDone?.(k);
+      await opts.onGroupDone?.(k, r as Record<string, unknown>);
       return r;
     }),
   );

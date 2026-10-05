@@ -12,3 +12,5 @@ export * from "./stats";
 export { db, getSql, schema } from "./db/client";
 export { browserAvailable } from "./engine/browser";
 export { llmAvailable } from "./llm";
+export * from "./zip";
+export * from "./plans";

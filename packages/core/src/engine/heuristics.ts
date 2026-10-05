@@ -63,7 +63,8 @@ export function heuristicGroup(key: GroupKey, capture: Capture, d: Digest): unkn
       const host = new URL(s.url).hostname.replace(/^www\./, "");
       const name = s.siteName || host.split(".")[0].replace(/^\w/, (c) => c.toUpperCase());
       const fams = clusterColors(s);
-      const mode = fams[0] && fams[0].lightness < 40 ? "dark" : "light";
+      const bgFam = [...fams].sort((a, b) => b.role.bg - a.role.bg)[0];
+      const mode = bgFam && bgFam.lightness < 45 ? "dark" : "light";
       return {
         identity: {
           companyName: name,

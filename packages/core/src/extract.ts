@@ -146,8 +146,14 @@ export async function runExtraction(id: string, maxPages?: number) {
     const merged: Record<string, unknown> = { ...partial };
     const result = await synthesize(capture, {
       depth: row.depth as "deep" | "light",
-      onGroupDone: async (key) => {
-        lock = lock.then(() => setStage(id, key, "done"));
+      onGroupDone: async (key, part) => {
+        // Persist each section as it lands so clients can stream results.
+        lock = lock.then(async () => {
+          Object.assign(merged, part);
+          const row = await db.query.extractions.findFirst({ where: eq(extractions.id, id), columns: { stages: true } });
+          const stages = (row?.stages ?? []).map((st) => (st.key === key ? { ...st, status: "done" as const } : st));
+          await db.update(extractions).set({ brand: merged as unknown as BrandSystem, stages }).where(eq(extractions.id, id));
+        });
         await lock;
       },
     });

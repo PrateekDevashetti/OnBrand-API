@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/*
+ * OnBrand design tokens — sampled from the reference UI, re-typeset in Canopy's
+ * DM Sans / DM Mono pairing.
+ */
+@theme {
+  --color-chrome: #1c1c1c;
+  --color-panel: #131313;
+  --color-card: #1c1c1c;
+  --color-card-2: #232322;
+  --color-raise: #2a2a2a;
+  --color-line: #2c2c2b;
+  --color-line-2: #3a3a39;
+  --color-cream: #f3f6f0;
+  --color-cream-2: #e6e9e3;
+  --color-ink: #111111;
+  --color-fg: #f3f6f0;
+  --color-dim: #a3a5a1;
+  --color-mute: #767775;
+  --color-faint: #565755;
+  --color-beta: #2f8ee0;
+  --color-ok: #68e464;
+  --color-warn: #e8b765;
+  --color-bad: #f2555a;
+  --color-promo: #1999f9;
+  --color-canopy: #4caf50;
+
+  --font-sans: var(--font-dm-sans), "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-panel: 22px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-chrome);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(243, 246, 240, 0.85);
+  color: #111;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+
+/* ---------- primitives ---------- */
+
+@layer components {
+  .btn-outline {
+    @apply inline-flex h-8 items-center justify-center gap-2 rounded-[4px] border border-cream/90 px-[21px] text-[15px] leading-none text-cream transition-colors duration-200 hover:bg-cream hover:text-ink;
+  }
+  .btn-outline-lg {
+    @apply inline-flex h-10 w-full items-center justify-center gap-2 rounded-[4px] border border-cream/90 px-5 text-[14.5px] text-cream transition-colors duration-200 hover:bg-cream hover:text-ink;
+  }
+  .btn-solid {
+    @apply inline-flex h-[34px] items-center justify-center gap-2 rounded-[4px] bg-cream px-6 text-[15px] font-medium text-ink transition-opacity duration-200 hover:opacity-85 disabled:opacity-40;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-1.5 text-[13px] text-dim transition-colors hover:text-cream;
+  }
+  .badge-beta {
+    @apply inline-flex h-[19px] items-center rounded-[3px] bg-[#222] px-[7px] font-mono text-[9.5px] tracking-[0.04em] text-beta uppercase;
+  }
+  .badge-alpha {
+    @apply inline-flex h-[19px] items-center rounded-[3px] bg-[#232322] px-[7px] font-mono text-[9.5px] tracking-[0.04em] text-mute uppercase;
+  }
+  .pill {
+    @apply inline-flex h-[30px] items-center rounded-full border border-line-2 px-3.5 text-[12px] text-dim;
+  }
+  .chip {
+    @apply inline-flex h-[26px] items-center rounded-[4px] bg-[#232322] px-2.5 text-[11.5px] text-dim;
+  }
+  .eyebrow {
+    @apply font-mono text-[11.5px] tracking-[0.09em] text-dim uppercase;
+  }
+  .card {
+    @apply rounded-[14px] bg-card;
+  }
+  .field {
+    @apply h-[38px] w-full rounded-[4px] bg-[#232322] px-3.5 text-[13px] text-cream placeholder:text-mute outline-none focus:ring-1 focus:ring-line-2;
+  }
+  .cream-input {
+    @apply h-12 w-full rounded-[6px] bg-cream px-4 text-[16px] text-ink placeholder:text-[#8b8d89] outline-none;
+  }
+  .seg {
+    @apply inline-flex h-[42px] items-center gap-1 rounded-full border border-line-2 p-1;
+  }
+  .seg-item {
+    @apply inline-flex h-8 items-center rounded-full px-5 text-[11.5px] text-mute transition-colors hover:text-dim;
+  }
+  .seg-item[data-active="true"] {
+    @apply bg-[#2a2a2a] text-cream ring-1 ring-[#3d3d3c];
+  }
+  .select-btn {
+    @apply inline-flex h-[30px] items-center gap-2 rounded-[4px] border border-line-2 px-2.5 text-[11.5px] text-dim transition-colors hover:text-cream;
+  }
+  .code {
+    @apply rounded-[6px] bg-[#0d0d0d] px-5 py-4 font-mono text-[11.5px] leading-[1.68] text-cream;
+  }
+  .table-row {
+    @apply grid items-center border-b border-[#232322] px-[30px] py-6 transition-colors hover:bg-[#181818];
+  }
+}
+
+/* ---------- motion ---------- */
+
+@keyframes ob-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-in {
+  animation: ob-fade-in 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes ob-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: ob-spin 0.9s linear infinite;
+}
+
+@keyframes ob-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse-dot {
+  animation: ob-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ob-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(90deg, #1c1c1c 0px, #262625 120px, #1c1c1c 240px);
+  background-size: 800px 100%;
+  animation: ob-shimmer 1.6s linear infinite;
+}
+
+/* ASCII layout templates */
+.ascii {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.43;
+  white-space: pre;
+  color: #8f918d;
+}

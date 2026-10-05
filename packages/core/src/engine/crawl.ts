@@ -46,7 +46,7 @@ async function dismissOverlays(page: Page) {
   }
 }
 
-export type CrawlOptions = { timeoutMs?: number; fullPage?: boolean };
+export type CrawlOptions = { timeoutMs?: number; fullPage?: boolean; lite?: boolean };
 
 export async function capturePage(url: string, opts: CrawlOptions = {}): Promise<Capture> {
   if (!browserAvailable()) return fetchCapture(url);
@@ -89,6 +89,9 @@ export async function capturePage(url: string, opts: CrawlOptions = {}): Promise
     await page.evaluate(`(async () => { try { await document.fonts.ready } catch (e) {} })()`);
 
     const signals = (await page.evaluate(COLLECTOR_SOURCE)) as PageSignals;
+    if (opts.lite) {
+      return { requestedUrl: url, finalUrl: page.url(), signals, html: "", css: "", screenshot: hero, hero, slices: hero ? [hero] : [], via: "browser" };
+    }
 
     // Hover states for the first few distinct buttons
     for (const b of signals.buttons.slice(0, 8)) {
