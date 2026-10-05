@@ -12,7 +12,7 @@ export function Panel({ id, title, children, className = "" }: { id: string; tit
   return (
     <section id={`sec-${id}`} data-section={id} className={`scroll-mt-0 rounded-[2px] bg-[#222222] px-[21px] pt-[20px] pb-[28px] ${className}`}>
       <h2 className="text-[33px] leading-none tracking-[-0.01em] text-cream">{title}</h2>
-      <div className="mt-[34px]">{children}</div>
+      <div className="mt-[30px]">{children}</div>
     </section>
   );
 }
@@ -287,7 +287,7 @@ export function PromptEnhancer({ extractionId, ready }: { extractionId: string; 
 function ColorCard({ c }: { c: Color }) {
   const shades = (c.shades ?? []).slice(0, 4);
   return (
-    <Card className="px-[16px] py-[16px]">
+    <Card className="px-[16px] pt-[14px] pb-[16px]">
       <div className="flex items-start gap-[13px]">
         <span className="h-[46px] w-[46px] shrink-0 rounded-[6px] border border-white/5" style={{ background: c.hex }} />
         <div>
@@ -298,7 +298,7 @@ function ColorCard({ c }: { c: Color }) {
           <div className="mt-[6px] text-[12px] text-cream">{c.hex}</div>
         </div>
       </div>
-      <p className="mt-[16px] text-[13px] text-dim">{c.description}</p>
+      <p className="mt-[12px] text-[13px] text-dim">{c.description}</p>
       {shades.length > 0 && (
         <div className="mt-[14px] grid gap-[8px]" style={{ gridTemplateColumns: `repeat(${shades.length}, minmax(0, 1fr))` }}>
           {shades.map((s, i) => (
@@ -603,7 +603,7 @@ export function InteractionsSection({ brand }: { brand: Partial<BrandSystem> }) 
   return (
     <>
       <Eyebrow>Buttons</Eyebrow>
-      <div className="space-y-[12px]">
+      <div className="space-y-[14px]">
         {it.buttons?.length ? (
           it.buttons.map((b, i) => {
             const def = parseCss(b.defaultCss);
@@ -611,7 +611,7 @@ export function InteractionsSection({ brand }: { brand: Partial<BrandSystem> }) 
             // Previews always render on the cream stage, exactly as measured (light outline buttons read on hover).
             const darkStage = false;
             return (
-              <Card key={i} className="pt-[16px]">
+              <Card key={i} className="pt-[14px] pb-[16px]">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-[14px] text-dim">{b.name}</div>

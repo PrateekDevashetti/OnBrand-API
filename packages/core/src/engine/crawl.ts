@@ -38,13 +38,40 @@ async function dismissOverlays(page: Page) {
       if (await loc.isVisible({ timeout: 150 })) {
         await loc.click({ timeout: 800 });
         await page.waitForTimeout(250);
+        break;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  // Promo / announcement modals: close via an in-dialog close control, else Escape.
+  for (const sel of MODAL_CLOSE_SELECTORS) {
+    try {
+      const loc = page.locator(sel).first();
+      if (await loc.isVisible({ timeout: 150 })) {
+        await loc.click({ timeout: 800 });
+        await page.waitForTimeout(300);
         return;
       }
     } catch {
       /* ignore */
     }
   }
+  if (await page.locator('[role="dialog"]:visible, [aria-modal="true"]:visible').count().catch(() => 0)) {
+    await page.keyboard.press("Escape").catch(() => {});
+    await page.waitForTimeout(300);
+  }
 }
+
+const MODAL_CLOSE_SELECTORS = [
+  '[role="dialog"] button[aria-label*="close" i]',
+  '[aria-modal="true"] button[aria-label*="close" i]',
+  '[class*="modal" i] button[aria-label*="close" i]',
+  '[class*="popup" i] button[aria-label*="close" i]',
+  '[class*="modal" i] [class*="close" i]',
+  '[class*="popup" i] [class*="close" i]',
+  'button[aria-label="Close" i]',
+];
 
 export type CrawlOptions = { timeoutMs?: number; fullPage?: boolean; lite?: boolean };
 
@@ -84,10 +111,16 @@ export async function capturePage(url: string, opts: CrawlOptions = {}): Promise
     await dismissOverlays(page);
     await page.waitForTimeout(800);
     let hero = await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null);
-    // Intro loaders / splash screens render as a near-uniform frame (a tiny JPEG): give them time and re-shoot.
-    for (let i = 0; i < 2 && hero && hero.length < 30_000; i++) {
+    // Intro loaders / splash screens: a near-uniform frame (tiny JPEG) or a frame that is still changing.
+    // Re-shoot until two consecutive frames settle (≤ 4 tries, ~10s), dismissing late overlays each time.
+    for (let i = 0; i < 4 && hero; i++) {
       await page.waitForTimeout(2500);
-      hero = (await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null)) ?? hero;
+      await dismissOverlays(page);
+      const next = await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null);
+      if (!next) break;
+      const settled = hero.length >= 30_000 && Math.abs(next.length - hero.length) / hero.length < 0.04;
+      hero = next;
+      if (settled) break;
     }
     await autoScroll(page);
     await page.waitForLoadState("networkidle", { timeout: 6_000 }).catch(() => {});
@@ -95,7 +128,21 @@ export async function capturePage(url: string, opts: CrawlOptions = {}): Promise
 
     const signals = (await page.evaluate(COLLECTOR_SOURCE)) as PageSignals;
     if (opts.lite) {
-      return { requestedUrl: url, finalUrl: page.url(), signals, html: "", css: "", screenshot: hero, hero, slices: hero ? [hero] : [], via: "browser" };
+      // Index cards and the style detail frame show ~1.5 viewports of the top of the page (620×576 at 1440 wide).
+      await page.evaluate("window.scrollTo(0, 0)").catch(() => {});
+      await page.waitForTimeout(600);
+      const docH = Number(await page.evaluate("document.documentElement.scrollHeight").catch(() => 900)) || 900;
+      let tall: Buffer | null = null;
+      if (docH >= 1340) {
+        tall = await page.screenshot({ type: "jpeg", quality: 80, fullPage: true, clip: { x: 0, y: 0, width: 1440, height: 1340 } }).catch(() => null);
+      } else {
+        // App-shell pages (100vh layouts) don't grow with full-page capture: render a taller viewport instead.
+        await page.setViewportSize({ width: 1440, height: 1340 }).catch(() => {});
+        await page.waitForTimeout(900);
+        tall = await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null);
+      }
+      const shot = tall ?? hero;
+      return { requestedUrl: url, finalUrl: page.url(), signals, html: "", css: "", screenshot: shot, hero: shot, slices: shot ? [shot] : [], via: "browser" };
     }
 
     // Hover states for the first few distinct buttons

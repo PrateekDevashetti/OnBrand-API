@@ -115,7 +115,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
         <nav className={`w-[191px] shrink-0 overflow-y-auto rounded-t-[2px] bg-[#222222] px-[12px] pb-[24px] ${atTop ? "pt-[18px]" : "pt-0"}`}>
           {NAV.map((n, i) =>
             n === "divider" ? (
-              <div key={i} className="mx-[12px] mt-[15px] mb-[21px] h-px w-[136px] bg-[#3a3a39]" />
+              <div key={i} className="mx-[12px] mt-[17px] mb-[23px] h-px w-[136px] bg-[#3a3a39]" />
             ) : (
               <button
                 key={n.key}

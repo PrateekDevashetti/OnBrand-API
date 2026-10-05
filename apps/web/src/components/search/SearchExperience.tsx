@@ -67,16 +67,16 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
       {!showResults && !busy && (
         <div className="pt-[50px]">
           <h1 className="text-[35px] leading-[1.15] text-cream">Search for any visual style</h1>
-          <p className="mt-[28px] max-w-[560px] text-[19px] leading-[1.57] text-dim">Describe a visual style and watch how our API searches for beautiful websites that exactly match the vibe you&apos;re going for.</p>
+          <p className="mt-[32px] max-w-[560px] text-[19px] leading-[1.57] text-dim">Describe a visual style and watch how our API searches for beautiful websites that exactly match the vibe you&apos;re going for.</p>
         </div>
       )}
       {busy && !result && (
         <div className="pt-[50px]">
           <h1 className="text-[35px] leading-[1.15] text-cream">Search for any visual style</h1>
-          <p className="mt-[28px] max-w-[560px] text-[19px] leading-[1.57] text-dim">Describe a visual style and watch how our API searches for beautiful websites that exactly match the vibe you&apos;re going for.</p>
+          <p className="mt-[32px] max-w-[560px] text-[19px] leading-[1.57] text-dim">Describe a visual style and watch how our API searches for beautiful websites that exactly match the vibe you&apos;re going for.</p>
         </div>
       )}
-      <div className={`flex justify-end gap-[8px] ${showResults || (busy && result) ? "pt-[50px]" : "mt-[52px]"}`}>
+      <div className={`flex justify-end gap-[8px] ${showResults || (busy && result) ? "pt-[50px]" : "mt-[48px]"}`}>
         <Select prefix="Search depth" value={depth} onChange={setDepth} options={[{ value: "light", label: "Light" }, { value: "deep", label: "Deep" }]} />
         <Select prefix="Result Number" value={limit} onChange={setLimit} options={["3", "6", "9", "12"].map((v) => ({ value: v, label: v }))} />
       </div>
@@ -156,7 +156,7 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
       {!showResults && (
         <div className="relative">
           {!busy && (
-            <div className="mt-[34px] grid grid-cols-4 gap-[24px]">
+            <div className="mt-[30px] grid grid-cols-4 gap-[24px]">
               {Object.entries(FACETS).map(([k, items]) => (
                 <div key={k}>
                   <div className="text-[12.5px] text-dim">{k}</div>

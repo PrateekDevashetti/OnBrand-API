@@ -2,7 +2,8 @@
  * Deterministic brand synthesis. Used when no LLM is configured, and per-section when an
  * LLM call fails. Everything here is derived from measured signals — no invented values.
  */
-import { parse, converter } from "culori";
+import { parse, converter, differenceCiede2000 } from "culori";
+const deltaE = differenceCiede2000();
 import type { Capture, PageSignals, ButtonSignal, SectionSignal } from "./signals";
 import type { digest } from "./analyze";
 import { clusterColors, ramp, typeScale, fontFamilies, breakpoints, type ColorFamily } from "./analyze";
@@ -89,7 +90,7 @@ function describeColor(f: ColorFamily, mode: string, rank: number): string {
 export function heuristicColors(capture: Capture) {
   const s = capture.signals;
   const fams = clusterColors(s);
-  const mode = modeOf(fams);
+  const mode = modeOf(fams, s);
   const seen = new Set<string>();
   const toColor = (f: ColorFamily, i: number): Color => {
     let name = colorName(f.hex);
@@ -110,9 +111,12 @@ export function heuristicColors(capture: Capture) {
   };
   const colors = fams.map(toColor);
   const accents = colors.filter((c) => c.tone === "Accent");
-  const neutrals = colors.filter((c) => c.tone !== "Accent");
-  // Secondary neutrals: surfaces before text colours, each group by visual weight.
   const famOf = new Map(fams.map((f) => [f.hex, f]));
+  // The lead neutral is the heaviest one on the side of the detected mode (dark site → its dark canvas).
+  const byWeight = colors.filter((c) => c.tone !== "Accent");
+  const lead = byWeight.find((c) => (famOf.get(c.hex)!.lightness < 45) === (mode === "dark")) ?? byWeight[0];
+  const neutrals = lead ? [lead, ...byWeight.filter((c) => c !== lead)] : byWeight;
+  // Secondary neutrals: surfaces before text colours, each group by visual weight.
   const isSurface = (c: Color) => roleOf(famOf.get(c.hex)!) === "surface";
   const rest = neutrals.slice(accents.length ? 1 : 2);
   const secondary = [...rest.filter(isSurface), ...rest.filter((c) => !isSurface(c))].slice(0, 5);
@@ -134,10 +138,22 @@ export function heuristicColors(capture: Capture) {
   };
 }
 
-function modeOf(fams: ColorFamily[]) {
-  // Total painted surface area of dark vs light families (a dark site often uses several near-blacks).
-  const dark = fams.filter((f) => f.lightness < 45).reduce((a, f) => a + f.role.bg, 0);
-  const light = fams.filter((f) => f.lightness >= 45).reduce((a, f) => a + f.role.bg, 0);
+function modeOf(fams: ColorFamily[], s?: PageSignals) {
+  // Total painted surface area of dark vs light families (a dark site often uses several near-blacks)...
+  let dark = fams.filter((f) => f.lightness < 45).reduce((a, f) => a + f.role.bg, 0);
+  let light = fams.filter((f) => f.lightness >= 45).reduce((a, f) => a + f.role.bg, 0);
+  // ...plus the first viewport, which sets the mode a visitor perceives: it carries a third of the vote.
+  const fold = (s?.sections ?? []).filter((x) => x.top < 900 && x.bg && !/^transparent|rgba\(0, 0, 0, 0\)$/.test(x.bg));
+  if (fold.length) {
+    const vis = (x: { top: number; height: number }) => Math.max(0, Math.min(900, x.top + x.height) - Math.max(0, x.top));
+    const darkFold = fold.filter((x) => luminance(x.bg) < 45).reduce((a, x) => a + vis(x), 0);
+    const lightFold = fold.filter((x) => luminance(x.bg) >= 45).reduce((a, x) => a + vis(x), 0);
+    const total = dark + light;
+    if (darkFold + lightFold > 0) {
+      dark += (total / 2) * (darkFold / (darkFold + lightFold));
+      light += (total / 2) * (lightFold / (darkFold + lightFold));
+    }
+  }
   return dark > light ? "dark" : "light";
 }
 
@@ -311,7 +327,7 @@ export function heuristicGroup(key: GroupKey, capture: Capture, d: Digest): unkn
   void d;
   const s = capture.signals;
   const fams = clusterColors(s);
-  const mode = modeOf(fams);
+  const mode = modeOf(fams, s);
   const fonts = fontFamilies(s).filter((f) => !/icon|awesome|material symbols/i.test(f.family));
   const feats = features(s);
   switch (key) {
@@ -349,16 +365,42 @@ export function heuristicGroup(key: GroupKey, capture: Capture, d: Digest): unkn
       return {
         colors: heuristicColors(capture),
         surfaces: {
-          textures: [s.gradients.length ? "gradient linear" : "flat", ...(s.backdrops.length ? ["glass blur"] : [])],
-          solids: fams
-            .filter((f) => roleOf(f) === "surface")
-            .slice(0, 8)
-            .map((f, i) => ({
-              name: i === 0 ? "Global Background" : `${colorName(f.hex)} Surface`,
-              hex: f.hex,
-              description: i === 0 ? `Primary ${f.lightness < 45 ? "dark" : "light"} background used throughout the site` : `${f.lightness < 45 ? "Darker" : "Lighter"} surface for contrasting sections and containers`,
-              usage: colorUsage(f, s),
-            })),
+          textures: [
+            s.gradients.length ? "gradient linear" : "flat",
+            ...(s.backdrops.length || /backdrop-filter\s*:\s*blur\(\s*[1-9]/i.test(capture.css ?? "") ? ["glass blur"] : []),
+          ],
+          solids: (() => {
+            const surf = fams.filter((f) => f.tone !== "Accent" && (roleOf(f) === "surface" || f.role.bg > 0));
+            const lead = surf.find((f) => (f.lightness < 45) === (mode === "dark")) ?? surf[0];
+            const ordered = lead ? [lead, ...surf.filter((f) => f !== lead)] : surf;
+            // Each family's visibly distinct members are separate surfaces (e.g. #FBFBFB vs #FFFFFF).
+            const entries: { hex: string; f: ColorFamily }[] = [];
+            for (const f of ordered) {
+              entries.push({ hex: f.hex, f });
+              for (const m of f.members.slice(1)) {
+                if (entries.some((e) => (deltaE(parse(e.hex)!, parse(m)!) ?? 0) < 1.2)) continue;
+                entries.push({ hex: m, f });
+              }
+            }
+            const sameSide = (hex: string) => (luminance(hex) < 45) === (mode === "dark");
+            const grouped = [...entries.filter((e) => sameSide(e.hex)), ...entries.filter((e) => !sameSide(e.hex))];
+            const names = new Set<string>();
+            return grouped.slice(0, 8).map(({ hex, f }, i) => {
+              const lum = luminance(hex);
+              let name = i === 0 ? "Global Background" : `${colorName(hex)} Surface`;
+              if (names.has(name)) name = `${colorName(hex)} ${lum >= 45 ? "Tint" : "Shade"} Surface`;
+              names.add(name);
+              return {
+                name,
+                hex,
+                description:
+                  i === 0
+                    ? `Primary ${lum < 45 ? "dark" : "light"} background used throughout the site`
+                    : `${lum < luminance(lead!.hex) ? "Deeper" : "Lighter"} surface for contrasting sections and containers`,
+                usage: colorUsage(f, s),
+              };
+            });
+          })(),
           gradients: s.gradients.slice(0, 6).map((g, i) => ({ name: `Gradient ${i + 1}`, css: g.value, description: g.value.startsWith("radial") ? "Radial glow / vignette" : "Linear gradient overlay or fill", usage: [g.sample ?? "Decorative backgrounds"].filter(Boolean) })),
         },
       };

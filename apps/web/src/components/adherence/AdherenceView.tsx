@@ -50,12 +50,12 @@ function SideHeader({ eyebrow, side, url }: { eyebrow: string; side: Side; url: 
   return (
     <div>
       <div className="font-mono text-[13px] tracking-[0.08em] text-mute uppercase">{eyebrow}</div>
-      <div className="mt-[38px] text-[20px] text-cream">{side?.company && side.status === "completed" ? side.company : h}</div>
-      <div className="mt-[16px] flex items-center gap-[8px] font-mono text-[12.5px] text-cream">
+      <div className="mt-[28px] text-[20px] text-cream">{side?.company && side.status === "completed" ? side.company : h}</div>
+      <div className="mt-[12px] flex items-center gap-[8px] font-mono text-[12.5px] text-cream">
         <img src={side?.favicon || `https://www.google.com/s2/favicons?domain=${h}&sz=32`} alt="" className="h-[13px] w-[13px] rounded-[2px]" />
         {h}
       </div>
-      <div className="mt-[20px] rounded-[2px] border border-[#2c2c2b] bg-black p-[12px]">
+      <div className="mt-[16px] rounded-[2px] border border-[#2c2c2b] bg-black p-[12px]">
         <div className="relative h-[396px] overflow-hidden bg-cream">
           {side?.hero ? (
             <img src={side.hero} alt={h} className="h-full w-full object-cover object-top" />
@@ -281,9 +281,9 @@ export function AdherenceView({ initial }: { initial: AdherenceData }) {
       : `Verified ${host(data.design_url)} against ${host(data.reference_url)}.`;
 
   return (
-    <div className="relative px-[24px] pt-[18px] pb-[40px]">
+    <div className="relative px-[24px] pt-[14px] pb-[40px]">
       <div className="flex items-center justify-between">
-        <Link href="/app/adherence" aria-label="Back" className="pl-[10px] text-cream hover:opacity-70">
+        <Link href="/app/adherence" aria-label="Back" className="text-cream hover:opacity-70">
           <ArrowLeft />
         </Link>
         <button
@@ -298,26 +298,26 @@ export function AdherenceView({ initial }: { initial: AdherenceData }) {
           <ShareIcon /> Share
         </button>
       </div>
-      <div className="mt-[42px] flex gap-[46px]">
-        <nav className="sticky top-[20px] w-[166px] shrink-0 self-start">
+      <div className="mt-[44px] flex gap-[46px]">
+        <nav className="sticky top-[20px] ml-[18px] w-[166px] shrink-0 self-start">
           {NAV.map((n) => (
             <button
               key={n.key}
               type="button"
               onClick={() => document.getElementById(`cat-${n.key}`)?.scrollIntoView({ behavior: "smooth" })}
-              className={`block h-[34px] w-full rounded-[4px] px-[12px] text-left text-[13.5px] transition-colors ${active === n.key ? "bg-[#1f1f1f] text-cream" : "text-dim hover:text-cream"}`}
+              className={`mb-[6px] block h-[34px] w-full rounded-[4px] px-[12px] text-left text-[13.5px] transition-colors ${active === n.key ? "bg-[#1f1f1f] text-cream" : "text-dim hover:text-cream"}`}
             >
               {n.label}
             </button>
           ))}
         </nav>
-        <div className="min-w-0 flex-1 space-y-[34px] pr-[36px]">
-          <section id="cat-overall" data-cat="overall">
+        <div className="min-w-0 flex-1 space-y-[48px] pr-[36px]">
+          <section id="cat-overall" data-cat="overall" className="pt-[6px] pb-[16px]">
             <div className="flex h-[38px] items-center gap-[12px] rounded-[2px] bg-[#1c1c1c] px-[16px] font-mono text-[12px] text-cream">
               <span className={`h-[7px] w-[7px] rounded-full ${running ? "pulse-dot bg-warn" : data.status === "failed" ? "bg-bad" : "bg-ok"}`} />
               {statusLine}
             </div>
-            <div className="mt-[60px] grid grid-cols-2 gap-[64px] px-[30px]">
+            <div className="mt-[52px] grid grid-cols-2 gap-[64px] px-[30px]">
               <SideHeader eyebrow="Reference brand" side={data.reference} url={data.reference_url} />
               <SideHeader eyebrow="Page you built" side={data.design} url={data.design_url} />
             </div>

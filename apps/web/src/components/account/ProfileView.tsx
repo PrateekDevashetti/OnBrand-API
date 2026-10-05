@@ -29,7 +29,7 @@ export function ProfileView({ initial, clerk }: { initial: P; clerk: boolean }) 
   const field = (label: string, key: keyof P, placeholder: string) => (
     <label className="block">
       <span className="mb-[8px] block text-[11.5px] text-dim">{label}</span>
-      <input className="field" placeholder={placeholder} value={p[key]} onChange={(e) => setP({ ...p, [key]: e.target.value })} />
+      <input className="field h-[32px]" placeholder={placeholder} value={p[key]} onChange={(e) => setP({ ...p, [key]: e.target.value })} />
     </label>
   );
   const row = (title: string, desc: string, action: string, onClick: () => void, danger = false) => (
@@ -44,17 +44,17 @@ export function ProfileView({ initial, clerk }: { initial: P; clerk: boolean }) 
     </div>
   );
   return (
-    <div className="px-[50px] pt-[50px] pb-[40px]">
+    <div className="px-[50px] pt-[52px] pb-[40px]">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-[37px] leading-none text-cream">Profile Settings</h1>
-          <p className="mt-[22px] text-[19px] text-dim">Manage your account information, notification and preferences</p>
+          <p className="mt-[16px] text-[19px] text-dim">Manage your account information, notification and preferences</p>
         </div>
         <button type="button" onClick={logout} className="flex h-[44px] items-center gap-[8px] rounded-[4px] border border-cream/90 px-[20px] text-[15.5px] text-cream hover:bg-cream hover:text-ink">
           <LogoutIcon /> Logout
         </button>
       </div>
-      <div className="mt-[36px] grid grid-cols-2 gap-x-[24px] gap-y-[30px]">
+      <div className="mt-[26px] grid grid-cols-2 gap-x-[24px] gap-y-[22px]">
         {field("Full Name", "name", "Full Name")}
         {field("Email Address", "email", "Email Address")}
         {field("Company Name", "companyName", "Company Name")}

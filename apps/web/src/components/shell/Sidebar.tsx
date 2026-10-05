@@ -11,7 +11,7 @@ const GROUPS: Group[] = [
   {
     label: "API Playground",
     items: [
-      { href: "/app/extract", label: "Brand Extraction", badge: "BETA", match: ["/app/extract", "/app/extractions"] },
+      { href: "/app/extract", label: "Brand Extraction", badge: "BETA", match: ["/app/extract"] },
       { href: "/app/search", label: "Style Search", badge: "ALPHA", match: ["/app/search", "/app/styles"] },
       { href: "/app/adherence", label: "Adherence", badge: "ALPHA" },
     ],

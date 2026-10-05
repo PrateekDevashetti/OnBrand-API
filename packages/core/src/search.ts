@@ -57,7 +57,7 @@ const SYN: Record<string, string[]> = {
   tech: ["tech", "technical", "developer", "saas", "ai", "infrastructure"],
 };
 
-function tokens(q: string): string[] {
+export function tokens(q: string): string[] {
   const words = q.toLowerCase().replace(/[^a-z0-9\s/-]/g, " ").split(/\s+/).filter((w) => w && !STOP.has(w));
   const out = new Set(words);
   for (const w of words) for (const [k, list] of Object.entries(SYN)) if (list.includes(w)) list.forEach((x) => out.add(x)), out.add(k);
@@ -159,7 +159,7 @@ function taxonomy(row: Row) {
   return row.tags.filter((t) => !/^(dark|light)$/i.test(t)).sort((a, b) => a.localeCompare(b));
 }
 
-function lexicalScore(row: Row, toks: string[], filters: string[]) {
+export function lexicalScore(row: Row, toks: string[], filters: string[]) {
   const fields: [string, number][] = [
     [row.tags.join(" "), 3],
     [row.styles.join(" "), 3],
@@ -228,6 +228,25 @@ export type SearchInput = {
   where?: SearchFilters;
 };
 
+/** Refinement chips for a result set: dominant industry, a shared trait the query didn't name, and contrast. */
+function refinements(results: StyleResult[], toks: string[]): string[] {
+  const count = (xs: string[]) => {
+    const m = new Map<string, number>();
+    for (const x of xs) m.set(x, (m.get(x) ?? 0) + 1);
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  };
+  const seen = new Set(toks);
+  const out: string[] = [];
+  const industry = count(results.flatMap((r) => r.tags.filter((t) => t.includes("/")).map((t) => t.split("/")[0].trim())))[0];
+  if (industry) out.push(industry);
+  const trait = count(results.flatMap((r) => r.traits ?? [])).find((t) => !seen.has(t.toLowerCase()) && !out.includes(t));
+  if (trait) out.push(trait);
+  const lum = (hex: string) => { const n = parseInt(hex.slice(1, 7), 16); return ((n >> 16) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114) / 255; };
+  const contrasty = results.filter((r) => r.palette.some((h) => lum(h) < 0.12) && r.palette.some((h) => lum(h) > 0.88)).length;
+  if (contrasty >= results.length / 2) out.push("High Contrast color");
+  return out.length ? out.slice(0, 3) : toks.slice(0, 3).map((t) => t.charAt(0).toUpperCase() + t.slice(1));
+}
+
 export async function styleSearch(actor: Actor, input: SearchInput) {
   const started = Date.now();
   const depth = input.depth ?? "light";
@@ -277,15 +296,27 @@ export async function styleSearch(actor: Actor, input: SearchInput) {
     });
   }
 
-  // Discovery: rotate one fresh exemplar of the detected style into the tail (never when filters are set).
+  // Discovery: swap the tail slot for the most relevant candidate that broadens the set —
+  // a different light/dark mode *and* page type than what is already shown (never when filters are set).
   if (!hasWhere && !filters.length && results.length >= 3) {
+    const shown = results.slice(0, -1);
     const taken = new Set(results.map((r) => r.id));
+    const modes = shown.map((r) => r.mode);
+    const majority = modes.filter((m) => m === "dark").length >= modes.length / 2 ? "dark" : "light";
+    const pages = new Set(shown.flatMap((r) => r.facets?.page_type ?? []));
     const pool = scored.filter(({ r, s }) => !taken.has(r.id) && s > 0).slice(0, 10);
-    if (pool.length) {
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      results[results.length - 1] = toResult(pick.r, pick.s, "Discovery");
-    }
+    const differs = (r: Row) => r.mode !== majority;
+    const newPage = (r: Row) => facetsOf(r).page_type.some((p) => !pages.has(p));
+    const newCategory = (r: Row) => !r.label.toLowerCase().split(/\s+/).some((w) => toks.includes(w));
+    const pick =
+      pool.find(({ r }) => differs(r) && newPage(r) && newCategory(r)) ??
+      pool.find(({ r }) => differs(r) && newPage(r)) ??
+      pool.find(({ r }) => differs(r)) ??
+      pool[0];
+    if (pick) results[results.length - 1] = toResult(pick.r, pick.s, "Discovery");
   }
+
+  if (depth !== "deep" || !llmAvailable()) queryTags = refinements(results, toks);
 
   const latencyMs = Date.now() - started;
   const credits = depth === "deep" ? PRICING.searchDeep : PRICING.searchLight;

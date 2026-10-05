@@ -8,7 +8,7 @@ import { OpenBrandSystem } from "@/components/search/OpenBrandSystem";
 export const dynamic = "force-dynamic";
 
 function Tag({ t }: { t: string }) {
-  return <span className="inline-flex h-[38px] items-center rounded-[6px] border border-[#55564f] px-[20px] text-[12px] text-dim">{t}</span>;
+  return <span className="inline-flex h-[38px] items-center rounded-[6px] border border-[#55564f] px-[19px] text-[12px] text-dim">{t}</span>;
 }
 
 export default async function StylePage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,8 +33,8 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
               <Tag key={t} t={t} />
             ))}
           </div>
-          <h2 className="mt-[24px] text-[20px] text-cream">Prompt Match Reasoning</h2>
-          <p className="mt-[20px] max-w-[306px] text-[11.5px] leading-[1.45] text-dim">{s.description}</p>
+          <h2 className="mt-[10px] text-[20px] text-cream">Prompt Match Reasoning</h2>
+          <p className="mt-[10px] min-h-[212px] max-w-[306px] text-[11.5px] leading-[1.45] text-dim">{s.description}</p>
           <div className="mt-[40px] flex justify-end">
             <OpenBrandSystem url={s.url} extractionId={s.extractionId} />
           </div>
@@ -53,9 +53,9 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
             <span className="text-[11.5px] text-cream">{raw.typography}</span>
           </div>
           <div className="border-t border-[#333]" />
-          <div className="py-[18px]">
+          <div className="pt-[4px] pb-[18px]">
             <span className="text-[16px] text-dim">Page Tags</span>
-            <div className="mt-[24px] flex flex-wrap justify-end gap-[8px]">
+            <div className="mt-[30px] flex flex-wrap justify-end gap-x-[8px] gap-y-[4px]">
               {pageTags.map((t) => (
                 <Tag key={t} t={t} />
               ))}
@@ -63,7 +63,7 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
-      <div className="mt-[50px] border-t border-[#333]" />
+      <div className="mt-[34px] border-t border-[#333]" />
       <div className="mt-[54px] flex items-center justify-between">
         <h2 className="text-[19px] text-cream">Similar branding</h2>
         <Link href={`/app/search`} className="text-[11.5px] text-dim hover:text-cream">

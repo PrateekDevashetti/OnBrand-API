@@ -179,7 +179,7 @@ export const COLLECTOR_SOURCE = String.raw`
     while (n) { const c = toHex(getComputedStyle(n).backgroundColor); if (c && c.a > 0.5) return c.hex; n = n.parentElement; }
     return '#FFFFFF';
   };
-  const seenBtn = new Set();
+  const seenBtn = new Map();
   const buttons = [];
   btnEls.forEach((el) => {
     if (buttons.length >= 16) return;
@@ -188,8 +188,11 @@ export const COLLECTOR_SOURCE = String.raw`
     const tcs = getComputedStyle(el.querySelector('div, span') || el);
     const text = (el.innerText || el.value || el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 60);
     const sig = [cs.backgroundColor, cs.color, cs.borderTopColor, cs.borderTopWidth, cs.borderRadius, cs.fontSize].join('|');
-    if (seenBtn.has(sig)) return;
-    seenBtn.add(sig);
+    // A style may appear twice when reused with different copy far down the page (a distinct usage context).
+    const top = Math.round(el.getBoundingClientRect().top + window.scrollY);
+    const prior = seenBtn.get(sig);
+    if (prior && (prior.n >= 2 || prior.text === text || Math.abs(top - prior.top) < 1200)) return;
+    seenBtn.set(sig, { n: (prior ? prior.n : 0) + 1, text, top });
     box.setAttribute('data-onbrand-btn', String(buttons.length));
     const css = pickCss(cs);
     if (box !== el) { css.fontFamily = tcs.fontFamily; css.fontSize = tcs.fontSize; css.fontWeight = tcs.fontWeight; css.color = tcs.color; }
