@@ -13,6 +13,27 @@ const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const errors: string[] = [];
 page.on("pageerror", (e) => errors.push(e.message));
 const results: [string, boolean, string][] = [];
+
+// Behind Clerk: sign in once with the QA test user (code 424242 if asked).
+async function signInIfNeeded() {
+  await page.goto(base + "/app", { waitUntil: "networkidle" });
+  if (!/sign-in/.test(page.url())) return "dev auth";
+  const email = process.env.QA_EMAIL ?? "onbrand-qa+clerk_test@example.com";
+  const password = process.env.QA_PASSWORD ?? "";
+  await page.locator('input[name="identifier"]').fill(email);
+  await page.getByRole("button", { name: /^continue$/i }).first().click();
+  await page.locator('input[name="password"]').waitFor({ timeout: 15000 });
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole("button", { name: /^continue$/i }).first().click();
+  // New-device check (client-trust / factor-two): +clerk_test addresses accept 424242.
+  await page.waitForURL(/(client-trust|factor-two|\/app)/, { timeout: 20000 });
+  if (/client-trust|factor-two/.test(page.url())) {
+    await page.locator("input").first().click();
+    await page.keyboard.type("424242", { delay: 60 });
+  }
+  await page.waitForURL(/\/app(\/|$|\?)/, { timeout: 30000 });
+  return "signed in with Clerk";
+}
 async function step(name: string, fn: () => Promise<string | void>) {
   const t = Date.now();
   try {
@@ -22,6 +43,8 @@ async function step(name: string, fn: () => Promise<string | void>) {
     results.push([name, false, (e as Error).message.split("\n")[0]]);
   }
 }
+
+await step("sign in (Clerk) → dashboard", signInIfNeeded);
 
 await step("landing → extract handoff", async () => {
   await page.goto(base + "/");

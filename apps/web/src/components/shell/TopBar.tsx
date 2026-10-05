@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Wordmark } from "../brand";
 import { GoCircle } from "../ui/icons";
 import { MobileMenu } from "./MobileMenu";
+import { AccountButton } from "./AccountButton";
 
 export function TopBar() {
   return (
@@ -21,6 +22,7 @@ export function TopBar() {
           <span className="max-sm:hidden">Add Credits</span>
           <GoCircle size={28} />
         </Link>
+        <AccountButton />
       </div>
     </header>
   );
