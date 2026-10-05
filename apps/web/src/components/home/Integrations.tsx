@@ -19,20 +19,20 @@ function mcpSnippets(client: Client) {
   switch (client) {
     case "claude":
       return [
-        `claude mcp add --transport http onbrand \\\n  ${url}`,
+        `claude mcp add --transport http onbrand \\\n  ${url} --header "X-API-Key: $ONBRAND_API_KEY"`,
         `claude mcp add --transport http onbrand \\\n  ${url} \\\n  --header "Authorization: Bearer YOUR_API_KEY"`,
       ];
     case "codex":
-      return [`codex mcp add onbrand --url ${url}`, `codex mcp add onbrand --url ${url} \\\n  --bearer-token-env-var ONBRAND_API_KEY`];
+      return [`codex mcp add onbrand --url ${url} \\\n  --bearer-token-env-var ONBRAND_API_KEY`, `[mcp_servers.onbrand]\nurl = "${url}"\nbearer_token_env_var = "ONBRAND_API_KEY"`];
     case "cursor":
     case "vscode":
       return [
-        JSON.stringify({ mcpServers: { onbrand: { url } } }, null, 2),
+        JSON.stringify({ mcpServers: { onbrand: { url, headers: { "X-API-Key": "${env:ONBRAND_API_KEY}" } } } }, null, 2),
         JSON.stringify({ mcpServers: { onbrand: { url, headers: { Authorization: "Bearer YOUR_API_KEY" } } } }, null, 2),
       ];
     case "desktop":
       return [
-        JSON.stringify({ mcpServers: { onbrand: { command: "npx", args: ["-y", "mcp-remote", url] } } }, null, 2),
+        JSON.stringify({ mcpServers: { onbrand: { command: "npx", args: ["-y", "mcp-remote", url, "--header", "X-API-Key: ${ONBRAND_API_KEY}"], env: { ONBRAND_API_KEY: "YOUR_API_KEY" } } } }, null, 2),
         JSON.stringify({ mcpServers: { onbrand: { command: "npx", args: ["-y", "mcp-remote", url, "--header", "Authorization: Bearer YOUR_API_KEY"] } } }, null, 2),
       ];
   }
@@ -65,13 +65,13 @@ export function Integrations() {
       {tab === "mcp" && (
         <div className="animate-in">
           <p className="mt-[20px] text-[11.5px] leading-[1.25] text-dim">
-            Connect the OnBrand MCP server to your AI client. Add the server, then run /mcp in Claude Code to sign in, or pass an API key.
+            Connect the OnBrand MCP server to your AI client with a key from the API Keys page. Export it as ONBRAND_API_KEY, then add the server.
           </p>
           <div className="mt-[12px]">
             <ClientPicker value={client} onChange={setClient} />
           </div>
           <CodeBlock className="mt-[12px]" code={primary} />
-          <p className="mt-[14px] mb-[8px] text-[13px] text-dim">Or authenticate with an API key</p>
+          <p className="mt-[14px] mb-[8px] text-[13px] text-dim">Or paste the key inline</p>
           <CodeBlock code={withKey} />
         </div>
       )}
@@ -85,7 +85,7 @@ export function Integrations() {
         <div className="animate-in">
           <p className="mt-[20px] mb-[12px] text-[13px] text-dim">Swap YOUR_API_KEY for a key from the API Keys page.</p>
           <CodeBlock
-            code={`curl --location '${config.apiBase}/extract' \\\n  --header 'Authorization: Bearer YOUR_API_KEY' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    "url": "https://ramp.com",\n    "depth": "deep"\n  }'`}
+            code={`curl --location '${config.apiBase}/extract' \\\n  --header 'X-API-Key: YOUR_API_KEY' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    "url": "https://ramp.com",\n    "force": true\n  }'`}
           />
         </div>
       )}
