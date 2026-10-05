@@ -1,3 +1,4 @@
+import { assertJobCapacity } from "./ratelimit";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { differenceCiede2000, parse } from "culori";
@@ -270,6 +271,7 @@ const STAGES: JobStage[] = [
 ];
 
 export async function createAdherence(actor: Actor, input: { reference: string; design: string }) {
+  await assertJobCapacity(actor.userId);
   if (normalizeUrl(input.reference).normalized === normalizeUrl(input.design).normalized) throw new SameUrlError();
   const ref = normalizeUrl(input.reference);
   const des = normalizeUrl(input.design);

@@ -1,3 +1,4 @@
+import { assertPublicUrl, isPublicUrl, UnsafeUrlError } from "./netguard";
 import type { Page, Response } from "playwright-core";
 import { getBrowser, browserAvailable } from "./browser";
 import { COLLECTOR_SOURCE, HOVER_READ_SOURCE } from "./collector";
@@ -76,6 +77,7 @@ const MODAL_CLOSE_SELECTORS = [
 export type CrawlOptions = { timeoutMs?: number; fullPage?: boolean; lite?: boolean };
 
 export async function capturePage(url: string, opts: CrawlOptions = {}): Promise<Capture> {
+  await assertPublicUrl(url);
   if (!browserAvailable()) return fetchCapture(url);
   const browser = await getBrowser();
   const context = await browser.newContext({
@@ -85,7 +87,36 @@ export async function capturePage(url: string, opts: CrawlOptions = {}): Promise
     locale: "en-US",
     colorScheme: "light",
   });
+  // SSRF guard: every request the page makes (documents, redirects, sub-resources) must hit a public host.
+  let blockedHit = "";
+  await context.route("**/*", async (route) => {
+    const req = route.request();
+    const u = req.url();
+    if (!(await isPublicUrl(u))) {
+      if (req.isNavigationRequest()) blockedHit = u;
+      return route.abort("blockedbyclient");
+    }
+    // Documents: fetch without following redirects so every Location is validated before the browser follows it.
+    if (req.resourceType() === "document" && /^https?:/.test(u)) {
+      try {
+        const res = await route.fetch({ maxRedirects: 0, timeout: 30_000 });
+        const loc = res.headers()["location"];
+        if (res.status() >= 300 && res.status() < 400 && loc && !(await isPublicUrl(new URL(loc, u).toString()))) {
+          blockedHit = new URL(loc, u).toString();
+          return route.abort("blockedbyclient");
+        }
+        return route.fulfill({ response: res });
+      } catch {
+        return route.continue();
+      }
+    }
+    return route.continue();
+  });
   const page = await context.newPage();
+  page.on("response", (res: Response) => {
+    // Redirect hops are not re-routed, so also inspect every response's final URL.
+    if (res.request().isNavigationRequest()) void isPublicUrl(res.url()).then((ok) => { if (!ok) blockedHit = res.url(); });
+  });
   const cssChunks: string[] = [];
   page.on("response", async (res: Response) => {
     try {
@@ -108,6 +139,8 @@ export async function capturePage(url: string, opts: CrawlOptions = {}): Promise
       else throw e;
     }
     await page.waitForLoadState("networkidle", { timeout: 12_000 }).catch(() => {});
+    await assertPublicUrl(page.url());
+    if (blockedHit) throw new UnsafeUrlError("The page redirected to a non-public address.");
     await dismissOverlays(page);
     await page.waitForTimeout(800);
     let hero = await page.screenshot({ type: "jpeg", quality: 80 }).catch(() => null);

@@ -1,3 +1,4 @@
+import { safeFetch } from "./netguard";
 import * as cheerio from "cheerio";
 import type { Capture, PageSignals, Weighted, ColorSignal, TextStyleSignal } from "./signals";
 import { env } from "../env";
@@ -38,7 +39,7 @@ async function firecrawlScreenshot(url: string): Promise<Buffer | null> {
 
 /** Browserless capture: HTML + stylesheets parsed statically. Lower fidelity than the browser path. */
 export async function fetchCapture(url: string): Promise<Capture> {
-  const res = await fetch(url, { headers: { "User-Agent": UA }, redirect: "follow", signal: AbortSignal.timeout(30_000) });
+  const res = await safeFetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`Fetch failed (${res.status}) for ${url}`);
   const html = await res.text();
   const finalUrl = res.url || url;
@@ -51,7 +52,7 @@ export async function fetchCapture(url: string): Promise<Capture> {
     .map((h) => new URL(h!, finalUrl).toString());
   const cssParts = await Promise.all(
     cssUrls.map((u) =>
-      fetch(u, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(15_000) })
+      safeFetch(u, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(15_000) })
         .then((r) => (r.ok ? r.text() : ""))
         .catch(() => ""),
     ),

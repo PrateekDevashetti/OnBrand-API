@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { InsufficientCreditsError, UnknownSectionError, InvalidFilterError, FullExtractionRequiredError, SameUrlError } from "@onbrand/core";
+import { InsufficientCreditsError, UnknownSectionError, InvalidFilterError, FullExtractionRequiredError, SameUrlError, UnsafeUrlError, TooManyJobsError, RateLimitError } from "@onbrand/core";
 import { ZodError } from "zod";
 
 export function json(data: unknown, init?: number | ResponseInit) {
@@ -14,6 +14,9 @@ export const unauthorized = () =>
   apiError(401, "unauthorized", "Missing or invalid API key. Pass `Authorization: Bearer ob_live_...` or `X-API-Key`.");
 
 export function handleError(err: unknown) {
+  if (err instanceof TooManyJobsError) return apiError(429, "too_many_jobs", err.message, { limit: err.limit });
+  if (err instanceof RateLimitError) return apiError(429, "rate_limited", err.message, { limit: err.limit, retry_after: err.retryAfter });
+  if (err instanceof UnsafeUrlError) return apiError(400, "unsafe_url", err.message);
   if (err instanceof InsufficientCreditsError) return apiError(402, "insufficient_credits", err.message, { needed: err.needed, balance: err.balance });
   if (err instanceof UnknownSectionError) return apiError(422, "invalid_sections", err.message);
   if (err instanceof InvalidFilterError) return apiError(422, "invalid_filter", err.message);

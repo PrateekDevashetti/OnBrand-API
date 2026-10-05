@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, jsonb, boolean, index, real } from "drizzle-orm/pg-core";
+import { primaryKey, pgTable, text, integer, timestamp, jsonb, boolean, index, real } from "drizzle-orm/pg-core";
 import type { BrandSystem } from "../types";
 import type { AdherenceReport } from "../adherence";
 import type { StyleResult } from "../search";
@@ -202,6 +202,18 @@ export const apiRequests = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("api_requests_created_idx").on(t.createdAt), index("api_requests_route_idx").on(t.route, t.createdAt)],
+);
+
+/** Fixed-window request counters for rate limiting (one row per subject × bucket × minute). */
+export const rateCounters = pgTable(
+  "rate_counters",
+  {
+    subject: text("subject").notNull(),
+    bucket: text("bucket").notNull(),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.subject, t.bucket, t.windowStart] })],
 );
 
 /** Human feedback on outputs — feeds evals and failure investigation. */

@@ -1,3 +1,4 @@
+import { assertJobCapacity } from "./ratelimit";
 import { and, eq, desc, gte, isNull, inArray, lt } from "drizzle-orm";
 import { db } from "./db/client";
 import { extractions, type JobStage } from "./db/schema";
@@ -57,6 +58,7 @@ const STAGES: JobStage[] = [
 ];
 
 export async function createExtraction(actor: Actor, input: ExtractInput, parentId?: string, opts: { free?: boolean } = {}) {
+  if (!parentId && !opts.free) await assertJobCapacity(actor.userId);
   const { url, normalized, domain } = normalizeUrl(input.url);
   const depth = input.depth ?? "deep";
   const pagesMode = parentId ? "single" : (input.pages ?? "single");

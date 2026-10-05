@@ -1,5 +1,6 @@
 import { customAlphabet } from "nanoid";
 import crypto from "node:crypto";
+import { assertSafeUrlShape } from "./engine/netguard";
 
 const alpha = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 16);
 
@@ -12,7 +13,7 @@ export function sha256(s: string) {
 export function normalizeUrl(input: string): { url: string; normalized: string; domain: string } {
   let raw = input.trim();
   if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
-  const u = new URL(raw);
+  const u = assertSafeUrlShape(raw);
   u.hash = "";
   const domain = u.hostname.replace(/^www\./, "");
   const pathname = u.pathname.replace(/\/+$/, "") || "/";

@@ -30,7 +30,7 @@ function scoreBrand(b: BrandSystem, g: (typeof GOLDEN)[number]) {
   // A golden entry may list alternatives ("#old|#new") when a brand refreshes its palette.
   const colorHits = g.colors.filter((exp) => exp.split("|").some((alt) => all.some((h) => { const p = parse(alt), q = parse(h); return p && q && de(p, q) < 6; })));
   const fams = (b.typography?.families ?? []).map((f) => f.family.toLowerCase());
-  const fontHits = g.fonts.filter((f) => fams.some((x) => x.includes(f.toLowerCase())));
+  const fontHits = g.fonts.filter((f) => f.split("|").some((alt) => fams.some((x) => x.includes(alt.toLowerCase()))));
   const sectionKeys = ["identity", "colors", "typography", "surfaces", "layout", "elevation", "interactions", "structure", "dataDisplay", "motion", "navigation", "icons", "sections", "media"] as const;
   const filled = sectionKeys.filter((k) => {
     const v = (b as Record<string, unknown>)[k];
