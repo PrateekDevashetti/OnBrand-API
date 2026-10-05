@@ -109,7 +109,7 @@ body {
   .code {
     @apply rounded-[6px] bg-[#0d0d0d] px-5 py-4 font-mono text-[11.5px] leading-[1.68] text-cream;
   }
-  .table-row {
+  .data-row {
     @apply grid items-center border-b border-[#232322] px-[30px] py-6 transition-colors hover:bg-[#181818];
   }
 }
@@ -188,4 +188,11 @@ body {
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
+}
+
+/* 1920px design stage scaled to the viewport (unitless ratio via tan(atan2())) */
+.hero-deco {
+  --stage: tan(atan2(100vw, 1920px));
+  transform: scale(min(1, var(--stage)));
+  transform-origin: 0 0;
 }

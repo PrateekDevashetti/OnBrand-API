@@ -54,34 +54,37 @@ export default async function Landing() {
             <span className="text-beta">BETA</span> Introducing: The OnBrand API
           </span>
         </div>
-        {shots[0] && (
-          <div className="absolute top-[33px] left-0 h-[192px] w-[71px] overflow-hidden rounded-r-[2px] opacity-90">
-            <img src={shots[0]} alt="" className="h-full w-[300px] max-w-none object-cover object-left-top" />
-          </div>
-        )}
-        {shots[1] && (
-          <div className="absolute top-[383px] left-[55px] h-[252px] w-[402px] overflow-hidden rounded-[2px] shadow-2xl">
-            <img src={shots[1]} alt="" className="h-full w-full object-cover object-top" />
-            <div className="absolute top-[6px] right-[6px] h-[240px] w-[280px] rounded-[10px] bg-white/70 p-4 backdrop-blur-md">
-              <div className="text-[8px] text-[#666]">Brand system</div>
-              <div className="mt-2 text-[12px] leading-tight text-[#111]">Every token, component and motion rule — extracted, structured and ready for your agent.</div>
-              <div className="mt-3 flex gap-1.5">
-                {(styles[1]?.palette ?? ["#111", "#f3f6f0", "#4caf50"]).slice(0, 6).map((c) => (
-                  <span key={c} className="h-4 w-4 rounded-full border border-black/10" style={{ background: c }} />
-                ))}
+        {/* Decorative layer is laid out on a 1920px stage and scales down with the viewport; hidden when it would crowd the input. */}
+        <div className="hero-deco pointer-events-none absolute top-0 left-0 h-full w-[1920px] max-[1359px]:hidden" aria-hidden="true">
+          {shots[0] && (
+            <div className="absolute top-[33px] left-0 h-[192px] w-[71px] overflow-hidden rounded-r-[2px] opacity-90">
+              <img src={shots[0]} alt="" className="h-full w-[300px] max-w-none object-cover object-left-top" />
+            </div>
+          )}
+          {shots[1] && (
+            <div className="absolute top-[383px] left-[55px] h-[252px] w-[402px] overflow-hidden rounded-[2px] shadow-2xl">
+              <img src={shots[1]} alt="" className="h-full w-full object-cover object-top" />
+              <div className="absolute top-[6px] right-[6px] h-[240px] w-[280px] rounded-[10px] bg-white/70 p-4 backdrop-blur-md">
+                <div className="text-[8px] text-[#666]">Brand system</div>
+                <div className="mt-2 text-[12px] leading-tight text-[#111]">Every token, component and motion rule — extracted, structured and ready for your agent.</div>
+                <div className="mt-3 flex gap-1.5">
+                  {(styles[1]?.palette ?? ["#111", "#f3f6f0", "#4caf50"]).slice(0, 6).map((c) => (
+                    <span key={c} className="h-4 w-4 rounded-full border border-black/10" style={{ background: c }} />
+                  ))}
+                </div>
+                <div className="mt-3 font-mono text-[8px] leading-[1.6] text-[#444]">{styles[1]?.typography}</div>
+                <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#111] text-[9px] text-white">✕</span>
               </div>
-              <div className="mt-3 font-mono text-[8px] leading-[1.6] text-[#444]">{styles[1]?.typography}</div>
-              <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#111] text-[9px] text-white">✕</span>
             </div>
-          </div>
-        )}
-        <pre className="pointer-events-none absolute top-[396px] left-[calc(100%-335px)] font-sans text-[19.5px] leading-[1.45] whitespace-pre [mask-image:linear-gradient(90deg,#000_70%,transparent)]">
-          {CSS_ART.map(([t, c], i) => (
-            <div key={i} style={{ color: c, opacity: i > 11 ? 1 - (i - 11) * 0.18 : 1 }}>
-              {t}
-            </div>
-          ))}
-        </pre>
+          )}
+          <pre className="pointer-events-none absolute top-[396px] left-[1585px] font-sans text-[19.5px] leading-[1.45] whitespace-pre [mask-image:linear-gradient(90deg,#000_70%,transparent)]">
+            {CSS_ART.map(([t, c], i) => (
+              <div key={i} style={{ color: c, opacity: i > 11 ? 1 - (i - 11) * 0.18 : 1 }}>
+                {t}
+              </div>
+            ))}
+          </pre>
+        </div>
         <div className="absolute top-[426px] right-0 left-0 px-6">
           <HeroInput />
           <h1 className="mt-[81px] text-center text-[32px] leading-none tracking-[-0.01em] text-cream">Make your agents be on brand</h1>

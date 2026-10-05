@@ -39,7 +39,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
           <span>Company</span><span>Extracted from</span><span>Request from</span><span>API Key</span><span>Status</span><span />
         </div>
         {rows.map((r) => (
-          <Link key={r.id} href={`/app/extractions/${r.id}`} className="table-row group grid-cols-[1.1fr_1.1fr_1.1fr_1.1fr_0.85fr_24px]">
+          <Link key={r.id} href={`/app/extractions/${r.id}`} className="data-row group grid-cols-[1.1fr_1.1fr_1.1fr_1.1fr_0.85fr_24px]">
             <div>
               <div className="text-[13.5px] text-cream">{r.company}</div>
               <div className="mt-[4px] text-[11.5px] text-dim">{r.normalizedUrl}</div>
@@ -66,7 +66,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
           <span>Query</span><span>Query tags</span><span>Search depth</span><span>API Key</span><span>Status</span>
         </div>
         {rows.map((r) => (
-          <Link key={r.id} href={`/app/search?s=${r.id}`} className="table-row grid-cols-[1.6fr_1.6fr_0.6fr_1.4fr_0.6fr]">
+          <Link key={r.id} href={`/app/search?s=${r.id}`} className="data-row grid-cols-[1.6fr_1.6fr_0.6fr_1.4fr_0.6fr]">
             <div>
               <div className="text-[11.5px] text-cream">{r.query}</div>
               <div className="mt-[10px] text-[11.5px] text-dim">{r.credits} credits · {fmt(r.createdAt)}</div>
@@ -90,7 +90,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
           <span>Page you built</span><span>Reference brand</span><span>API Key</span><span>Status</span>
         </div>
         {rows.map((r) => (
-          <Link key={r.id} href={`/app/adherence/${r.id}`} className="table-row grid-cols-[1fr_1fr_1fr_0.5fr]">
+          <Link key={r.id} href={`/app/adherence/${r.id}`} className="data-row grid-cols-[1fr_1fr_1fr_0.5fr]">
             <div>
               <div className="text-[11.5px] text-cream">{r.designUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}</div>
               <div className="mt-[10px] text-[11.5px] text-dim">{r.score != null ? `${Math.round(r.score)}/100 · ` : ""}{fmt(r.createdAt)}</div>

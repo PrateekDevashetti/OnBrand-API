@@ -27,7 +27,7 @@ export default async function ApiKeysPage() {
           <span>Name</span><span>Key</span><span>Created</span><span>Last used</span><span />
         </div>
         {keys.map((k) => (
-          <div key={k.id} className="table-row grid-cols-[1.3fr_1.3fr_1fr_1fr_120px]">
+          <div key={k.id} className="data-row grid-cols-[1.3fr_1.3fr_1fr_1fr_120px]">
             <span className="text-[13.5px] text-cream">{k.name}</span>
             <span className="font-mono text-[12px] text-dim">{k.prefix}••••••••</span>
             <span className="text-[12.5px] text-dim">{fmt(k.createdAt)}</span>

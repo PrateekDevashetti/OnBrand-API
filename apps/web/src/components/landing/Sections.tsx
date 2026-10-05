@@ -150,7 +150,7 @@ export function ProductTour() {
     return () => clearInterval(t);
   }, [playing]);
   return (
-    <section id="tour" className="grid grid-cols-[1fr_1060px] gap-[40px] bg-[#f3f4f0] px-[40px] pt-[242px] pb-[242px] text-[#111]">
+    <section id="tour" className="grid grid-cols-[minmax(280px,740fr)_minmax(0,1060fr)] gap-[40px] bg-[#f3f4f0] px-[40px] pt-[242px] pb-[242px] text-[#111]">
       <div className="flex flex-col justify-between">
         <div>
           <h2 className="max-w-[440px] text-[21px] leading-[28px] tracking-[-0.01em]">How OnBrand turns a website into a brand system your agent can use</h2>
@@ -195,7 +195,7 @@ const CLIENTS = ["Claude Code", "Cursor", "Codex", "VS Code", "Windsurf", "Claud
 
 export function IntegrateSection() {
   return (
-    <section id="integrations" className="grid grid-cols-[872px_1fr] items-start gap-[96px] bg-[#141414] px-[200px] pt-[260px] pb-[260px]">
+    <section id="integrations" className="grid grid-cols-[minmax(0,1.58fr)_minmax(300px,1fr)] items-start gap-[clamp(40px,5vw,96px)] bg-[#141414] px-[clamp(32px,10.42vw,200px)] pt-[260px] pb-[260px]">
       <div className="overflow-hidden rounded-[14px] border border-[#2a2a2a] bg-[#1e1e1e]">
         <img src="/landing/dashboard.jpg" alt="The OnBrand dashboard: usage, API keys and agent integrations" className="block w-full" />
       </div>

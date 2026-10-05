@@ -15,3 +15,4 @@ tsconfig.tsbuildinfo
 qa/shots/
 .claude/worktrees/
 qa/compare/
+qa/audit/

@@ -24,10 +24,10 @@ function Big({ n, label, extra }: { n: React.ReactNode; label: string; extra?: R
   return (
     <div>
       <div className="flex items-baseline gap-[10px]">
-        <span className="text-[33px] leading-none text-cream">{n}</span>
+        <span className="text-[clamp(26px,1.72vw,33px)] leading-none whitespace-nowrap text-cream">{n}</span>
         {extra}
       </div>
-      <div className="mt-[3px] text-[19px] text-dim">{label}</div>
+      <div className="mt-[3px] text-[clamp(14px,0.99vw,19px)] whitespace-nowrap text-dim">{label}</div>
     </div>
   );
 }
@@ -63,9 +63,9 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
         </div>
       </div>
       <div className="mt-[24px] grid grid-cols-3 gap-[12px]">
-        <div className="card flex h-[646px] flex-col px-[36px] pt-[36px] pb-[30px]">
+        <div className="card flex h-[646px] min-w-0 flex-col px-[clamp(20px,1.875vw,36px)] pt-[36px] pb-[30px]">
           <div className="eyebrow text-[13.5px] text-cream">API Keys</div>
-          <div className="mt-[84px] flex gap-[34px]">
+          <div className="mt-[84px] flex gap-[clamp(18px,1.77vw,34px)]">
             <Big n={data.totals.requests} label={FEATURE_LABEL[feature]} />
             <Big n={data.totals.highestCreditSpent} label="highest credit spent" />
           </div>
@@ -77,9 +77,9 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
             <SpikeChart values={s.map((x) => x.creditsByKey)} labels={labels} />
           </div>
         </div>
-        <div className="card flex h-[646px] flex-col px-[36px] pt-[36px] pb-[30px]">
+        <div className="card flex h-[646px] min-w-0 flex-col px-[clamp(20px,1.875vw,36px)] pt-[36px] pb-[30px]">
           <div className="eyebrow text-[13.5px] text-cream">Requests</div>
-          <div className="mt-[84px] flex gap-[60px]">
+          <div className="mt-[84px] flex gap-[clamp(20px,3.125vw,60px)]">
             <Big n={data.totals.requests} label="requests" />
             <Big n={latency(data.totals.avgLatencyMs)} label="avg latency" />
           </div>
@@ -91,7 +91,7 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
             <SpikeChart values={s.map((x) => x.requests)} labels={labels} />
           </div>
         </div>
-        <div className="card flex h-[646px] flex-col px-[36px] pt-[36px] pb-[30px]">
+        <div className="card flex h-[646px] min-w-0 flex-col px-[clamp(20px,1.875vw,36px)] pt-[36px] pb-[30px]">
           <div className="flex items-start justify-between">
             <div className="eyebrow text-[13.5px] text-cream">Credits</div>
             <div className="flex flex-col items-center">
@@ -103,7 +103,7 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
               </Link>
             </div>
           </div>
-          <div className="mt-[20px] flex gap-[24px]">
+          <div className="mt-[20px] flex gap-[clamp(14px,1.25vw,24px)]">
             <Big n={data.totals.creditsSpent} label="credits spent" />
             <Big n={data.balance} label="credits remaining" extra={low ? <span className="text-[14px] text-bad">Running Low</span> : null} />
           </div>

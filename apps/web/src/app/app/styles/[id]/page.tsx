@@ -22,8 +22,8 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
       <Link href="/app/search" aria-label="Back" className="inline-block text-cream hover:opacity-70">
         <ArrowLeft width={26} height={20} />
       </Link>
-      <div className="mt-[24px] grid grid-cols-[620px_1fr] gap-[100px]">
-        <a href={s.url} target="_blank" rel="noreferrer" className="block h-[576px] overflow-hidden rounded-[12px] bg-[#0e0e0e]">
+      <div className="mt-[24px] grid grid-cols-[minmax(0,620fr)_minmax(270px,436fr)] gap-[clamp(32px,5.2vw,100px)]">
+        <a href={s.url} target="_blank" rel="noreferrer" className="block aspect-[620/576] self-start overflow-hidden rounded-[12px] bg-[#0e0e0e]">
           {s.screenshot && <img src={s.screenshot} alt={s.name} className="h-full w-full object-cover object-top" />}
         </a>
         <div>
@@ -70,10 +70,10 @@ export default async function StylePage({ params }: { params: Promise<{ id: stri
           See all →
         </Link>
       </div>
-      <div className="mt-[26px] grid grid-cols-3 gap-x-[24px] gap-y-[30px]">
+      <div className="mt-[26px] grid grid-cols-3 gap-x-[clamp(14px,1.25vw,24px)] gap-y-[30px]">
         {similar.map((x) => (
           <Link key={x.id} href={`/app/styles/${x.id}`} className="group block">
-            <div className="h-[260px] overflow-hidden rounded-[8px] bg-[#0e0e0e]">
+            <div className="aspect-[369/260] overflow-hidden rounded-[8px] bg-[#0e0e0e]">
               {x.screenshot && <img src={x.screenshot} alt={x.name} loading="lazy" className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]" />}
             </div>
             <div className="mt-[16px] text-[14px] text-cream">{x.name}</div>

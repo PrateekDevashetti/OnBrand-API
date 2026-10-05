@@ -56,7 +56,7 @@ function SideHeader({ eyebrow, side, url }: { eyebrow: string; side: Side; url: 
         {h}
       </div>
       <div className="mt-[16px] rounded-[2px] border border-[#2c2c2b] bg-black p-[12px]">
-        <div className="relative h-[396px] overflow-hidden bg-cream">
+        <div className="relative aspect-[586/396] overflow-hidden bg-cream">
           {side?.hero ? (
             <img src={side.hero} alt={h} className="h-full w-full object-cover object-top" />
           ) : (

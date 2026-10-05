@@ -2,9 +2,10 @@
 import Link from "next/link";
 import type { StyleResult } from "@onbrand/core/search";
 
-export function StyleThumb({ s, h, badge }: { s: StyleResult; h: number; badge?: string }) {
+/** `w`×`h` is the crop at the 1920px design width; the aspect ratio holds it at every viewport. */
+export function StyleThumb({ s, w, h, badge }: { s: StyleResult; w: number; h: number; badge?: string }) {
   return (
-    <div className="relative overflow-hidden rounded-[8px] bg-[#0e0e0e]" style={{ height: h }}>
+    <div className="relative overflow-hidden rounded-[8px] bg-[#0e0e0e]" style={{ aspectRatio: `${w} / ${h}` }}>
       {s.screenshot ? (
         <img src={s.screenshot} alt={s.name} loading="lazy" className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]" />
       ) : (
@@ -22,7 +23,7 @@ export function StyleThumb({ s, h, badge }: { s: StyleResult; h: number; badge?:
 export function FeaturedCard({ s, h = 172 }: { s: StyleResult; h?: number }) {
   return (
     <Link href={`/app/styles/${s.id}`} className="group block">
-      <StyleThumb s={s} h={h} />
+      <StyleThumb s={s} w={274} h={h} />
       <div className="mt-[11px] text-[14px] leading-[18px] text-cream">{s.label || s.name}</div>
       <div className="mt-[8px] text-[12px] leading-[16px] text-dim">{(s.traits?.length ? s.traits : s.tags).join(" | ")}</div>
     </Link>
@@ -37,7 +38,7 @@ export function FeaturedMasonry({ items }: { items: StyleResult[] }) {
   const cols: { s: StyleResult; h: number }[][] = [[], [], [], []];
   items.forEach((s, i) => cols[i % 4].push({ s, h: MASONRY[i % MASONRY.length] }));
   return (
-    <div className="grid grid-cols-4 items-start gap-x-[20px]">
+    <div className="grid grid-cols-4 items-start gap-x-[clamp(12px,1.04vw,20px)]">
       {cols.map((col, c) => (
         <div key={c} className="flex flex-col gap-[56px]">
           {col.map(({ s, h }) => (
@@ -52,7 +53,7 @@ export function FeaturedMasonry({ items }: { items: StyleResult[] }) {
 export function ResultCard({ s, sep = " | " }: { s: StyleResult; sep?: string }) {
   return (
     <Link href={`/app/styles/${s.id}`} className="group block">
-      <StyleThumb s={s} h={216} badge={s.match} />
+      <StyleThumb s={s} w={346} h={216} badge={s.match} />
       <div className="mt-[12px] text-[14.5px] leading-[18px] text-cream">{s.name}</div>
       <div className="mt-[6px] truncate text-[12px] leading-[16px] text-dim">{s.tags.slice(0, 3).join(sep)}</div>
     </Link>
