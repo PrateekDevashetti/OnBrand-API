@@ -10,7 +10,7 @@ import { CodeBlock } from "../ui/CodeBlock";
 
 export function Panel({ id, title, children, className = "" }: { id: string; title: string; children: React.ReactNode; className?: string }) {
   return (
-    <section id={`sec-${id}`} data-section={id} className={`scroll-mt-4 rounded-[2px] bg-[#222222] px-[21px] pt-[30px] pb-[28px] ${className}`}>
+    <section id={`sec-${id}`} data-section={id} className={`scroll-mt-0 rounded-[2px] bg-[#222222] px-[21px] pt-[20px] pb-[28px] ${className}`}>
       <h2 className="text-[33px] leading-none tracking-[-0.01em] text-cream">{title}</h2>
       <div className="mt-[34px]">{children}</div>
     </section>
@@ -608,7 +608,8 @@ export function InteractionsSection({ brand }: { brand: Partial<BrandSystem> }) 
           it.buttons.map((b, i) => {
             const def = parseCss(b.defaultCss);
             const hov = { ...def, ...parseCss(b.hoverCss) };
-            const darkStage = b.surface === "dark";
+            // Previews always render on the cream stage, exactly as measured (light outline buttons read on hover).
+            const darkStage = false;
             return (
               <Card key={i} className="pt-[22px]">
                 <div className="flex items-start justify-between gap-4">
@@ -620,10 +621,10 @@ export function InteractionsSection({ brand }: { brand: Partial<BrandSystem> }) 
                 </div>
                 <div className={`mt-[14px] flex h-[68px] items-center gap-[10px] rounded-[6px] px-[16px] ${darkStage ? "bg-[#0e0e0e]" : "bg-cream"}`}>
                   <span className="inline-flex items-center whitespace-nowrap" style={def}>
-                    {b.label || "Default"}
+                    Default
                   </span>
                   <span className="inline-flex items-center whitespace-nowrap" style={hov}>
-                    {b.label ? `${b.label}` : "Hover"}
+                    Hover
                   </span>
                   <span className={`ml-auto font-mono text-[10px] ${darkStage ? "text-mute" : "text-[#8b8d89]"}`}>default · hover</span>
                 </div>

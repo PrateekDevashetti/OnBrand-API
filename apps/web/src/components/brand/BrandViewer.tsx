@@ -96,8 +96,8 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
   );
 
   return (
-    <div className="relative pr-[18px] pb-[18px] pl-[17px]">
-      <div className="flex h-[52px] items-center justify-between pt-[8px]">
+    <div className={`relative flex flex-col pr-[18px] pl-[17px] ${shared ? "h-[calc(100vh-72px)]" : "h-full"}`}>
+      <div className="flex h-[40px] shrink-0 items-center justify-between">
         {shared ? <span /> : (
           <Link href={backHref} aria-label="Back" className="pl-[15px] text-cream transition-opacity hover:opacity-70">
             <ArrowLeft />
@@ -109,8 +109,8 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
           </button>
         )}
       </div>
-      <div className="mt-[10px] flex items-start gap-[10px]">
-        <nav className="sticky top-0 w-[191px] shrink-0 self-start rounded-[2px] bg-[#222222] px-[12px] pt-[15px] pb-[24px]" style={{ minHeight: "calc(100vh - 140px)" }}>
+      <div className="mt-[10px] flex min-h-0 flex-1 items-stretch gap-[10px]">
+        <nav className="w-[191px] shrink-0 overflow-y-auto rounded-t-[2px] bg-[#222222] px-[12px] pt-[2px] pb-[24px]">
           {NAV.map((n, i) =>
             n === "divider" ? (
               <div key={i} className="mx-[12px] my-[18px] h-px w-[136px] bg-[#3a3a39]" />
@@ -126,7 +126,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
             ),
           )}
         </nav>
-        <div className="min-w-0 flex-1 space-y-[10px]">
+        <div id="panel" className="min-w-0 flex-1 space-y-[10px] overflow-y-auto pb-[18px]">
           {running && (
             <div className="flex items-center gap-[12px] rounded-[2px] bg-[#222] px-[21px] py-[14px] font-mono text-[12px] text-dim">
               <span className="pulse-dot h-[7px] w-[7px] rounded-full bg-warn" />

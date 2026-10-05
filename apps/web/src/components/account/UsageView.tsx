@@ -27,7 +27,7 @@ function Big({ n, label, extra }: { n: React.ReactNode; label: string; extra?: R
         <span className="text-[33px] leading-none text-cream">{n}</span>
         {extra}
       </div>
-      <div className="mt-[10px] text-[19px] text-dim">{label}</div>
+      <div className="mt-[3px] text-[19px] text-dim">{label}</div>
     </div>
   );
 }
@@ -65,7 +65,7 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
       <div className="mt-[24px] grid grid-cols-3 gap-[12px]">
         <div className="card flex h-[646px] flex-col px-[36px] pt-[36px] pb-[30px]">
           <div className="eyebrow text-[13.5px] text-cream">API Keys</div>
-          <div className="mt-[86px] flex gap-[34px]">
+          <div className="mt-[84px] flex gap-[34px]">
             <Big n={data.totals.requests} label={FEATURE_LABEL[feature]} />
             <Big n={data.totals.highestCreditSpent} label="highest credit spent" />
           </div>
@@ -79,7 +79,7 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
         </div>
         <div className="card flex h-[646px] flex-col px-[36px] pt-[36px] pb-[30px]">
           <div className="eyebrow text-[13.5px] text-cream">Requests</div>
-          <div className="mt-[86px] flex gap-[60px]">
+          <div className="mt-[84px] flex gap-[60px]">
             <Big n={data.totals.requests} label="requests" />
             <Big n={latency(data.totals.avgLatencyMs)} label="avg latency" />
           </div>
@@ -103,7 +103,7 @@ export function UsageView({ initial, keys }: { initial: Summary; keys: { id: str
               </Link>
             </div>
           </div>
-          <div className="mt-[32px] flex gap-[24px]">
+          <div className="mt-[20px] flex gap-[24px]">
             <Big n={data.totals.creditsSpent} label="credits spent" />
             <Big n={data.balance} label="credits remaining" extra={low ? <span className="text-[14px] text-bad">Running Low</span> : null} />
           </div>

@@ -160,9 +160,9 @@ export function SearchExperience({ featured, initial }: { featured: StyleResult[
               {Object.entries(FACETS).map(([k, items]) => (
                 <div key={k}>
                   <div className="text-[12.5px] text-dim">{k}</div>
-                  <div className="mt-[20px] flex flex-col items-start gap-[4px]">
+                  <div className="mt-[13px] flex flex-col items-start">
                     {items.map((it) => (
-                      <button key={it} type="button" onClick={() => { const q = query || `${it.toLowerCase()} website`; setQuery(q); toggleFilter(it); run(q, [...filters, it]); }} className="text-[18px] leading-[1.45] text-cream transition-opacity hover:opacity-70">
+                      <button key={it} type="button" onClick={() => { const q = query || `${it.toLowerCase()} website`; setQuery(q); toggleFilter(it); run(q, [...filters, it]); }} className="text-[18px] leading-[1.5] text-cream transition-opacity hover:opacity-70">
                         {it}
                       </button>
                     ))}

@@ -16,10 +16,11 @@ page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
 page.on("console", (m) => m.type() === "error" && errors.push(`console: ${m.text().slice(0, 200)}`));
 for (const arg of process.argv.slice(2)) {
   const [path, scroll, wait] = arg.split("@");
-  const name = (path.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "") || "root") + (scroll ? `_s${scroll}` : "");
+  const name = process.env.NAMES ? process.env.NAMES.split(",")[process.argv.slice(2).indexOf(arg)] : (path.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "") || "root") + (scroll ? `_s${scroll.replace("#", "")}` : "");
   const res = await page.goto(base + path, { waitUntil: "networkidle", timeout: 60000 }).catch((e) => (errors.push(String(e)), null));
   await page.waitForTimeout(Number(wait ?? 900));
-  if (scroll) await page.evaluate((y) => { const p = document.getElementById("panel"); (p ?? document.scrollingElement)!.scrollTo(0, y); }, Number(scroll));
+  if (scroll?.startsWith("#")) await page.evaluate((sel) => document.querySelector(sel)?.scrollIntoView({ block: "start" }), scroll);
+  else if (scroll) await page.evaluate((y) => { const p = document.getElementById("panel"); (p ?? document.scrollingElement)!.scrollTo(0, y); }, Number(scroll));
   if (scroll) await page.waitForTimeout(400);
   await page.screenshot({ path: `${out}${name}.png` });
   console.log(`${res?.status() ?? "ERR"} ${path} -> qa/shots/${name}.png`);

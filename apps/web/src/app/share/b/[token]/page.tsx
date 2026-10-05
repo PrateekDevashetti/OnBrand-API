@@ -18,7 +18,7 @@ export default async function SharedBrand({ params }: { params: Promise<{ token:
   const row = await db.query.extractions.findFirst({ where: eq(schema.extractions.shareToken, token) });
   if (!row) notFound();
   return (
-    <div className="h-screen overflow-y-auto bg-chrome" id="panel">
+    <div className="h-screen overflow-hidden bg-chrome">
       <header className="flex h-[72px] items-center justify-between px-[15px] pr-[30px]">
         <Wordmark href="/" />
         <a href="/app" className="btn-outline">Try OnBrand</a>
