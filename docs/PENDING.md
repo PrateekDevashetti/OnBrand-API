@@ -130,4 +130,5 @@ QA credentials:
   `E2E_BASE_URL=https://brand.trycanopy.space E2E_API_KEY=ob_live_… E2E_EMAIL=… E2E_PASSWORD=… npx e2e run tests/e2e`
   (the QA account needs credits; top up with SQL against Neon if it runs out).
 
-Related docs: `README.md` (architecture, API, MCP, skills), `docs/PARITY.md` (design scorecard).
+Related docs: `README.md` (architecture, API, MCP, skills), `docs/PARITY.md` (design scorecard),
+`docs/architecture/` (interactive system and extraction-flow diagrams).

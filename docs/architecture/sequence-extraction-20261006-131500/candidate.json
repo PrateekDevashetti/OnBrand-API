@@ -1,0 +1,354 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "OnBrand \u2014 one brand extraction, end to end (worker mode)",
+    "output": "docs/architecture/sequence-extraction-20261006-131500/onbrand-extraction-sequence.html",
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1080,
+      696
+    ],
+    "repository": {
+      "url": "git@github.com:PrateekDevashetti/OnBrand-API.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "49fdd5c61ef39090a47a97488efee44765709ac1"
+    }
+  },
+  "participants": [
+    {
+      "id": "client",
+      "type": "external",
+      "label": "Client",
+      "sublabel": "dashboard \u00b7 agent \u00b7 SDK",
+      "sources": [
+        {
+          "path": "packages/sdk/src/index.ts",
+          "line": 110,
+          "end_line": 269,
+          "label": "SDK client"
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API (Vercel)",
+      "sublabel": "/api/v1/extract",
+      "sources": [
+        {
+          "path": "apps/web/src/app/api/v1/extract/route.ts",
+          "line": 1,
+          "end_line": 68
+        },
+        {
+          "path": "apps/web/src/app/api/v1/extract/[id]/result/route.ts",
+          "line": 1,
+          "end_line": 27,
+          "label": "GET result"
+        },
+        {
+          "path": "apps/web/src/lib/logged.ts",
+          "line": 1,
+          "end_line": 53,
+          "label": "rate limit + log"
+        }
+      ]
+    },
+    {
+      "id": "pg",
+      "type": "database",
+      "label": "Neon Postgres",
+      "sublabel": "keys \u00b7 credits \u00b7 jobs",
+      "sources": [
+        {
+          "path": "packages/core/src/accounts.ts",
+          "line": 49,
+          "end_line": 97,
+          "label": "debit + key hash"
+        },
+        {
+          "path": "packages/core/src/queue.ts",
+          "line": 28,
+          "end_line": 54,
+          "label": "dispatch + claim"
+        }
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Engine worker",
+      "sublabel": "Railway",
+      "sources": [
+        {
+          "path": "apps/worker/src/index.ts",
+          "line": 14,
+          "end_line": 40,
+          "label": "claim loop"
+        },
+        {
+          "path": "packages/core/src/extract.ts",
+          "line": 147,
+          "end_line": 272,
+          "label": "runExtraction"
+        }
+      ]
+    },
+    {
+      "id": "site",
+      "type": "external",
+      "label": "Target site",
+      "sublabel": "public URL",
+      "sources": [
+        {
+          "path": "packages/core/src/engine/crawl.ts",
+          "line": 79,
+          "end_line": 240,
+          "label": "capturePage"
+        },
+        {
+          "path": "packages/core/src/engine/netguard.ts",
+          "line": 1,
+          "end_line": 123,
+          "label": "SSRF guard"
+        }
+      ]
+    },
+    {
+      "id": "r2",
+      "type": "cloud",
+      "label": "Cloudflare R2",
+      "sublabel": "artifacts",
+      "sources": [
+        {
+          "path": "packages/core/src/storage.ts",
+          "line": 50,
+          "end_line": 93,
+          "label": "putObject"
+        }
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "external",
+      "label": "Claude",
+      "sublabel": "via OpenRouter",
+      "sources": [
+        {
+          "path": "packages/core/src/engine/synthesize.ts",
+          "line": 23,
+          "end_line": 148,
+          "label": "6 section groups"
+        },
+        {
+          "path": "packages/core/src/llm.ts",
+          "line": 12,
+          "end_line": 39
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "from": 160,
+      "to": 271,
+      "label": "Request"
+    },
+    {
+      "from": 288,
+      "to": 486,
+      "label": "Worker run"
+    },
+    {
+      "from": 503,
+      "to": 585,
+      "label": "Result"
+    }
+  ],
+  "messages": [
+    {
+      "id": "post-extract",
+      "from": "client",
+      "to": "api",
+      "y": 172,
+      "label": "POST /v1/extract (API key)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "check-key",
+      "from": "api",
+      "to": "pg",
+      "y": 201,
+      "label": "key hash \u00b7 rate limit \u00b7 cache",
+      "variant": "security",
+      "note": "cache hit \u2192 copy row, no new job"
+    },
+    {
+      "id": "debit-enqueue",
+      "from": "api",
+      "to": "pg",
+      "y": 230,
+      "label": "debit \u00b7 insert row + job",
+      "variant": "emphasis"
+    },
+    {
+      "id": "accepted",
+      "from": "api",
+      "to": "client",
+      "y": 259,
+      "label": "202 { id, queued }",
+      "variant": "return"
+    },
+    {
+      "id": "claim",
+      "from": "worker",
+      "to": "pg",
+      "y": 300,
+      "label": "claim job (SKIP LOCKED)",
+      "variant": "default"
+    },
+    {
+      "id": "capture",
+      "from": "worker",
+      "to": "site",
+      "y": 329,
+      "label": "guarded Playwright capture",
+      "variant": "emphasis",
+      "note": "150 s timeout"
+    },
+    {
+      "id": "page",
+      "from": "site",
+      "to": "worker",
+      "y": 358,
+      "label": "DOM \u00b7 CSS \u00b7 screenshots",
+      "variant": "return"
+    },
+    {
+      "id": "store",
+      "from": "worker",
+      "to": "r2",
+      "y": 387,
+      "label": "put HTML \u00b7 CSS \u00b7 JPGs",
+      "variant": "dashed"
+    },
+    {
+      "id": "synth",
+      "from": "worker",
+      "to": "llm",
+      "y": 416,
+      "label": "6 sections in parallel",
+      "variant": "emphasis"
+    },
+    {
+      "id": "json",
+      "from": "llm",
+      "to": "worker",
+      "y": 445,
+      "label": "JSON (or measured fallback)",
+      "variant": "return"
+    },
+    {
+      "id": "save",
+      "from": "worker",
+      "to": "pg",
+      "y": 474,
+      "label": "merge each section \u00b7 completed",
+      "variant": "default"
+    },
+    {
+      "id": "poll",
+      "from": "client",
+      "to": "api",
+      "y": 515,
+      "label": "GET /v1/extract/:id/result",
+      "variant": "default"
+    },
+    {
+      "id": "read",
+      "from": "api",
+      "to": "pg",
+      "y": 544,
+      "label": "read brand row",
+      "variant": "default"
+    },
+    {
+      "id": "result",
+      "from": "api",
+      "to": "client",
+      "y": 573,
+      "label": "200 (409 until first section)",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "api",
+      "from": 166,
+      "to": 265,
+      "type": "backend"
+    },
+    {
+      "participant": "pg",
+      "from": 195,
+      "to": 236,
+      "type": "database"
+    },
+    {
+      "participant": "worker",
+      "from": 294,
+      "to": 480,
+      "type": "backend"
+    },
+    {
+      "participant": "site",
+      "from": 323,
+      "to": 364,
+      "type": "external"
+    },
+    {
+      "participant": "llm",
+      "from": 410,
+      "to": 451,
+      "type": "external"
+    },
+    {
+      "participant": "api",
+      "from": 509,
+      "to": 579,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Happy path",
+      "items": [
+        "The API never crawls in worker mode: it debits, writes the row and a job, and answers 202",
+        "The Railway worker owns all slow work: capture, R2 upload, six parallel Claude calls",
+        "Each section is merged into the row as it lands, so /result can return partial data early"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Failure handling",
+      "items": [
+        "Unsafe or private URLs are rejected before any request (SSRF guard)",
+        "A failed AI section falls back to the deterministic measured engine",
+        "Jobs stuck past 12 min are failed and their credits refunded; jobs locked >15 min are re-claimed (max 3 attempts)"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Known limits",
+      "items": [
+        "Clients poll; there are no webhooks or push updates yet",
+        "One worker service with 3 slots and no per-account fairness in the queue",
+        "Inline mode (no worker) runs the same steps inside the web function, used for local dev"
+      ]
+    }
+  ]
+}

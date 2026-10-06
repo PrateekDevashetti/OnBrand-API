@@ -1,0 +1,4 @@
+# Archify raw evidence (contains local absolute paths); the finalize-summary receipt is kept.
+*.browser-check.json
+*.delivery.json
+*.finalize.json

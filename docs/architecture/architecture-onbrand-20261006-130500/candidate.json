@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "OnBrand API — system architecture (handoff, Oct 2026)",
+    "output": "docs/architecture/architecture-onbrand-20261006-130500/onbrand-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:PrateekDevashetti/OnBrand-API.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "49fdd5c61ef39090a47a97488efee44765709ac1"
+    },
+    "views": [
+      { "id": "view-extraction", "label": "Brand extraction path", "focus": ["users", "web", "api", "neon", "worker", "sites", "llm", "r2"], "note": "A URL becomes a job row, the Railway worker crawls it, Claude synthesizes, results land in Postgres and R2." },
+      { "id": "view-agents", "label": "Agent access (API, MCP, SDK)", "focus": ["agents", "api", "neon"], "note": "Agents use the same API key and the same serializers over REST or MCP." },
+      { "id": "view-trust", "label": "Auth and trust", "focus": ["clerk", "web", "api", "agents"], "note": "Clerk session for the dashboard; hashed API keys + per-key rate limits for REST/MCP." },
+      { "id": "view-storage", "label": "Where data lives", "focus": ["neon", "r2", "worker", "api"], "note": "Postgres holds users, credits, jobs and brand JSON; R2 holds screenshots, HTML and CSS." }
+    ]
+  },
+  "components": [
+    { "id": "users", "type": "external", "label": "Dashboard users", "sublabel": "browser", "pos": [40, 220], "size": [150, 64],
+      "sources": [{ "path": "apps/web/src/app/app/layout.tsx", "line": 1, "end_line": 27, "label": "dashboard shell" }] },
+    { "id": "clerk", "type": "security", "label": "Clerk", "sublabel": "dev instance · sign-in", "pos": [250, 60], "size": [170, 64], "tag": "Marketplace",
+      "sources": [{ "path": "apps/web/src/proxy.ts", "line": 1, "end_line": 18, "label": "clerkMiddleware" }, { "path": "apps/web/src/lib/auth.ts", "line": 1, "end_line": 46, "label": "session + dev auth" }] },
+    { "id": "web", "type": "frontend", "label": "Next.js dashboard", "sublabel": "landing · /app · viewer", "pos": [250, 220], "size": [170, 64],
+      "sources": [{ "path": "apps/web/src/components/brand/BrandViewer.tsx", "line": 1, "end_line": 188, "label": "brand viewer" }, { "path": "apps/web/src/app/app/layout.tsx", "line": 1, "end_line": 27 }] },
+    { "id": "api", "type": "backend", "label": "REST + MCP API", "sublabel": "/api/v1 · /api/mcp", "pos": [500, 220], "size": [170, 64], "tag": "key + rate limit",
+      "sources": [{ "path": "apps/web/src/app/api/v1/extract/route.ts", "line": 1, "end_line": 68, "label": "POST /v1/extract" }, { "path": "apps/web/src/app/api/mcp/route.ts", "line": 1, "end_line": 31, "label": "MCP endpoint" }, { "path": "apps/web/src/lib/logged.ts", "line": 1, "end_line": 53, "label": "logging + rate limits" }] },
+    { "id": "agents", "type": "external", "label": "AI agents & SDK", "sublabel": "MCP · skills · TS SDK", "pos": [40, 400], "size": [170, 64],
+      "sources": [{ "path": "apps/web/src/lib/mcp.ts", "line": 63, "end_line": 258, "label": "MCP tools" }, { "path": "packages/sdk/src/index.ts", "line": 110, "end_line": 269, "label": "OnBrand SDK" }, { "path": "skills/onbrand-search/SKILL.md", "line": 1, "end_line": 55 }] },
+    { "id": "neon", "type": "database", "label": "Neon Postgres", "sublabel": "users · credits · jobs · brands", "pos": [760, 220], "size": [190, 64],
+      "sources": [{ "path": "packages/core/src/db/schema.ts", "line": 36, "end_line": 252, "label": "tables" }, { "path": "packages/core/src/queue.ts", "line": 28, "end_line": 54, "label": "job queue" }, { "path": "packages/core/src/accounts.ts", "line": 49, "end_line": 97, "label": "credit debit" }] },
+    { "id": "worker", "type": "backend", "label": "Engine worker", "sublabel": "Railway · Playwright · 3 slots", "pos": [1030, 220], "size": [190, 64],
+      "sources": [{ "path": "apps/worker/src/index.ts", "line": 14, "end_line": 40, "label": "claim loop" }, { "path": ".railway/railway.ts", "line": 1, "end_line": 34, "label": "Railway IaC" }, { "path": "Dockerfile", "line": 1, "end_line": 22 }] },
+    { "id": "llm", "type": "external", "label": "OpenRouter → Claude", "sublabel": "AI synthesis", "pos": [1030, 60], "size": [190, 64],
+      "sources": [{ "path": "packages/core/src/llm.ts", "line": 12, "end_line": 39, "label": "gateway client" }, { "path": "packages/core/src/engine/synthesize.ts", "line": 93, "end_line": 148, "label": "AI or measured fallback" }] },
+    { "id": "sites", "type": "external", "label": "Target websites", "sublabel": "any public URL", "pos": [1300, 220], "size": [160, 64],
+      "sources": [{ "path": "packages/core/src/engine/crawl.ts", "line": 79, "end_line": 240, "label": "capturePage" }, { "path": "packages/core/src/engine/netguard.ts", "line": 1, "end_line": 123, "label": "SSRF guard" }] },
+    { "id": "r2", "type": "cloud", "label": "Cloudflare R2", "sublabel": "screenshots · HTML · CSS", "pos": [760, 400], "size": [190, 64], "tag": "prefix onbrand/",
+      "sources": [{ "path": "packages/core/src/storage.ts", "line": 13, "end_line": 93, "label": "S3 SigV4 driver" }, { "path": "apps/web/src/app/api/files/[...path]/route.ts", "line": 5, "end_line": 23, "label": "CDN-cached file route" }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Vercel · brand.trycanopy.space", "wraps": ["web", "api"] },
+    { "kind": "region", "label": "Railway · onbrand-worker", "wraps": ["worker"] }
+  ],
+  "connections": [
+    { "id": "users-web", "from": "users", "to": "web", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "clerk-web", "from": "clerk", "to": "web", "label": "session", "variant": "security" },
+    { "id": "web-api", "from": "web", "to": "api", "label": "fetch /api/v1" },
+    { "id": "agents-api", "from": "agents", "to": "api", "label": "API key", "variant": "security" },
+    { "id": "api-neon", "from": "api", "to": "neon", "label": "debit · enqueue", "variant": "emphasis" },
+    { "id": "worker-neon", "from": "worker", "to": "neon", "label": "claim · save" },
+    { "id": "worker-sites", "from": "worker", "to": "sites", "label": "crawl", "variant": "emphasis" },
+    { "id": "worker-llm", "from": "worker", "to": "llm", "label": "synthesize" },
+    { "id": "worker-r2", "from": "worker", "to": "r2", "label": "put artifacts" },
+    { "id": "api-r2", "from": "api", "to": "r2", "label": "serve /api/files", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "How it works", "items": [
+      "POST /v1/extract (or the dashboard, or an MCP tool) normalizes the URL, reuses a fresh cached result, else debits credits and writes an extraction row",
+      "In worker mode the API only inserts a job; the Railway worker claims it with FOR UPDATE SKIP LOCKED (3 parallel slots)",
+      "Worker: SSRF-guarded Playwright capture → screenshots/HTML/CSS to R2 → per-section Claude synthesis via OpenRouter, merged into the row as each section lands",
+      "No AI key or a failed section → deterministic measured engine fills it in; light/dark mode is always the measured value",
+      "Clients poll /v1/extract/:id/result; Style Search ranks a 65-brand index; Adherence extracts both pages and scores them"
+    ] },
+    { "dot": "cyan", "title": "What happened (Oct 5–6, 2026)", "items": [
+      "Built as a Canopy Labs product line cloning Taste Engine's UI from 46 screenshots + a screen recording (Canopy logo, DM Sans/Mono)",
+      "Full API lifecycle, MCP server, two agent skills and a TS SDK; e2e acceptance suite per task (tests/e2e)",
+      "Deployed: Vercel web + Railway worker + Neon + R2; domain brand.trycanopy.space; Railway moved to IaC with preserve()",
+      "Production verification: 41/41 e2e, 50/50 API smoke, 12/12 extraction evals"
+    ] },
+    { "dot": "rose", "title": "Shortcomings", "items": [
+      "Clerk runs on a development instance: 'Development mode' label, 100-user cap (production blocked by domain ownership)",
+      "Stripe keys not set: paid plans send an upgrade request instead of checkout",
+      "UI parity 96.7% design vs the 97% target; Style Search thumbnails and tastelabs font drift",
+      "Single worker service, no autoscaling; Neon restore window is 2 days",
+      "Brand viewer can jump to top if scrolled within ~1s of load; local AI key has no credit"
+    ] },
+    { "dot": "amber", "title": "Next (see docs/PENDING.md)", "items": [
+      "Roll the pasted Clerk sk_live key",
+      "Share the canvas Clerk production app before a public launch",
+      "Add Stripe keys + webhook, then test checkout",
+      "New Railway worker variable → also add NAME: preserve() to .railway/railway.ts"
+    ] }
+  ]
+}
