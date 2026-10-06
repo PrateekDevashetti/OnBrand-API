@@ -14,7 +14,7 @@ export function ExtractArt() {
   const cells = 36;
   const lit = Math.round((pct / 100) * cells);
   return (
-    <div className="relative flex h-full items-center justify-center">
+    <div className="relative flex h-full items-center justify-center" aria-hidden="true">
       <div className="absolute top-[26px] left-[60px] flex gap-[3px]">
         <span className="h-[7px] w-[7px] rounded-full bg-cream" />
         <span className="h-[7px] w-[7px] rounded-full bg-cream/60" />
@@ -49,7 +49,7 @@ export function SearchArt() {
     return () => clearTimeout(t);
   }, [n, qi]);
   return (
-    <div className="flex h-full items-center justify-center px-6">
+    <div className="flex h-full items-center justify-center px-6" aria-hidden="true">
       <div className="flex w-full items-center gap-2 rounded-[6px] bg-cream py-[9px] pr-[7px] pl-3">
         <span className="min-h-[20px] flex-1 font-mono text-[8.5px] leading-[1.2] text-ink">
           {QUERIES[qi].slice(0, n)}
@@ -69,7 +69,7 @@ export function AdherenceArt() {
     ["[TOTAL]", "98% CORRECT"],
   ];
   return (
-    <div className="flex h-full flex-col items-center justify-center">
+    <div className="flex h-full flex-col items-center justify-center" aria-hidden="true">
       <div className="relative h-[108px] w-[176px] overflow-hidden rounded-[3px] bg-[#0e1210]">
         <div className="absolute inset-x-0 top-0 flex h-[10px] items-center gap-1 bg-[#1a221d] px-1.5">
           <span className="h-[3px] w-6 bg-[#4caf50]" />

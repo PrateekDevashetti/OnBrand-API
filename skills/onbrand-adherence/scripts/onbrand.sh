@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # OnBrand API helper for agents without the MCP server. Needs ONBRAND_API_KEY.
 set -euo pipefail
-API="${ONBRAND_API_URL:-https://onbrand-api.vercel.app}/api/v1"
+API="${ONBRAND_API_URL:-https://brand.trycanopy.space}/api/v1"
 KEY="${ONBRAND_API_KEY:?Set ONBRAND_API_KEY (create one at /app/api-keys)}"
 H=(-sS -H "X-API-Key: $KEY" -H "Content-Type: application/json")
 j() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }

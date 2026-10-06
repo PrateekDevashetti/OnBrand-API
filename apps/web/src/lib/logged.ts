@@ -11,7 +11,17 @@ export function logged<C>(route: string, handler: Handler<C>, via: "api" | "mcp"
     let error: string | null = null;
     try {
       const limited = await rateLimit(req, route);
-      res = limited ?? (await handler(req, ctx));
+      if (limited instanceof Response) res = limited;
+      else {
+        res = await handler(req, ctx);
+        // Advertise the per-minute budget on every response, not only on 429s.
+        try {
+          res.headers.set("X-RateLimit-Limit", String(limited.limit));
+          res.headers.set("X-RateLimit-Remaining", String(limited.remaining));
+        } catch {
+          /* immutable headers (e.g. a proxied fetch Response) */
+        }
+      }
     } catch (e) {
       error = (e as Error).message;
       res = Response.json({ error: { code: "internal_error", message: error } }, { status: 500 });
@@ -25,15 +35,14 @@ export function logged<C>(route: string, handler: Handler<C>, via: "api" | "mcp"
 const JOB_ROUTES = /^POST \/v1\/(extract|adherence|search|enhance)$|^\/api\/mcp$/;
 
 /** Per API key (or client IP for the playground): all routes, plus a tighter bucket for job-creating POSTs. */
-async function rateLimit(req: Request, route: string): Promise<Response | null> {
+async function rateLimit(req: Request, route: string): Promise<Response | { limit: number; remaining: number }> {
   const key = readApiKey(req);
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("x-real-ip") || "local";
   const subject = key ? `key:${key.slice(0, 18)}` : `ip:${ip}`;
   try {
     const all = await hitRateLimit(subject, "all", LIMITS.rpm);
     if (req.method === "POST" && JOB_ROUTES.test(route)) await hitRateLimit(subject, "jobs", LIMITS.jobsRpm);
-    void all;
-    return null;
+    return all;
   } catch (e) {
     if (!(e instanceof RateLimitError)) throw e;
     return Response.json(

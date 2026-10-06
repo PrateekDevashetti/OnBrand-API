@@ -116,7 +116,7 @@ export class OnBrand {
     const env = (typeof process !== "undefined" ? process.env : {}) as Record<string, string | undefined>;
     this.key = opts.apiKey ?? env.ONBRAND_API_KEY ?? "";
     if (!this.key) throw new Error("OnBrand: pass apiKey or set ONBRAND_API_KEY");
-    this.base = (opts.baseUrl ?? env.ONBRAND_API_URL ?? "https://onbrand-api.vercel.app").replace(/\/$/, "") + "/api/v1";
+    this.base = (opts.baseUrl ?? env.ONBRAND_API_URL ?? "https://brand.trycanopy.space").replace(/\/$/, "") + "/api/v1";
     this.f = opts.fetch ?? fetch;
   }
 
