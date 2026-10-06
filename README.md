@@ -70,4 +70,4 @@ npx tsx qa/shot.mts /app /app/extract …      # 1920×1080 screenshots
 python3 qa/compare.py qa/pairs.tsv            # SSIM vs reference captures + side-by-side sheets
 ```
 
-See `docs/PARITY.md` for the latest scorecard.
+See `docs/PARITY.md` for the latest scorecard. Open work and how to resume: `docs/PENDING.md`.
