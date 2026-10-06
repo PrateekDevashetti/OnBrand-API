@@ -24,7 +24,9 @@ for (const w of WIDTHS) {
   test(`public pages at ${w}px`, async ({ browser }) => {
     await browser.setViewport({ width: w, height: 900 });
     for (const p of PUBLIC) {
-      await browser.goto(BASE + p, { waitUntil: "networkidle" });
+      // "load" + a settle, not networkidle: Clerk's scripts and link prefetches keep connections busy.
+      await browser.goto(BASE + p, { waitUntil: "load" });
+      await new Promise((r) => setTimeout(r, 2500));
       const r = await browser.evaluate(probe);
       expect({ page: p, ...r }).toEqual({ page: p, overflowX: 0, tiny: 0, noAlt: 0 });
     }
