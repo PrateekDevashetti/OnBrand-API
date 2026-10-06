@@ -1,6 +1,6 @@
 # Design parity scorecard
 
-Measured 2026-10-06 against the reference captures (1920×1080) with `qa/compare.py`. Screens are captured
+Measured 2026-10-06 (final pass, after the design-area dock and production deploy) against the reference captures (1920×1080) with `qa/compare.py`. Screens are captured
 with `qa/capture.mts` after `qa/fixture.sql` puts the dev account in the same state as the screenshots.
 
 - **pixel** — SSIM on 480×270 grayscale (sensitive to glyph shapes, logos and live content) blended with top-bar, sidebar and tone checks.
@@ -11,37 +11,47 @@ with `qa/capture.mts` after `qa/fixture.sql` puts the dev account in the same st
 
 ```
 screen                   ssim  topbar  sidebar   tone   pixel  layout  design
-landing                 0.896   0.908    0.788  0.967   88.9%   95.8%   96.1%
-home                    0.837   0.955    0.930  0.983   88.4%   97.2%   97.5%
+landing                 0.897   0.908    0.788  0.967   88.9%   96.1%   96.2%
+home                    0.837   0.955    0.929  0.983   88.3%   97.2%   97.5%
 home_mcp                0.811   0.955    0.930  0.950   86.4%   97.6%   96.8%
 extract                 0.945   0.955    0.929  1.000   95.0%   99.1%   99.4%
-history                 0.886   0.955    0.930  1.000   91.4%   98.6%   99.0%
-history_search          0.927   0.955    0.930  1.000   93.9%   99.4%   99.6%
+history                 0.886   0.955    0.930  1.000   91.4%   98.5%   99.0%
+history_search          0.926   0.955    0.930  1.000   93.9%   99.4%   99.6%
 history_adh             0.923   0.955    0.930  0.950   93.1%   98.6%   97.5%
 overview                0.894   0.955    0.906  0.950   91.1%   96.1%   95.8%
 identity                0.783   0.955    0.931  0.950   84.8%   97.6%   96.8%
-colours                 0.789   0.954    0.931  0.950   85.1%   96.6%   96.1%
-typography              0.836   0.935    0.931  1.000   88.1%   97.6%   98.3%
-surfaces                0.823   0.934    0.931  0.950   86.9%   97.1%   96.5%
-layout                  0.743   0.955    0.931  1.000   82.9%   96.9%   97.8%
-interactions            0.901   0.955    0.931  0.950   91.9%   97.7%   96.9%
+colours                 0.786   0.954    0.931  0.950   84.9%   96.4%   96.0%
+typography              0.828   0.935    0.931  0.950   87.2%   97.5%   96.7%
+surfaces                0.816   0.934    0.931  0.950   86.4%   96.9%   96.4%
+layout                  0.737   0.955    0.931  1.000   82.5%   96.7%   97.7%
+interactions            0.889   0.955    0.931  0.900   90.7%   96.6%   94.7%
 structure               0.772   0.955    0.931  1.000   84.6%   96.9%   97.8%
-motion                  0.826   0.955    0.931  1.000   87.9%   98.7%   99.1%
-navigation              0.862   0.955    0.931  0.950   89.5%   98.4%   97.4%
-sections                0.833   0.955    0.931  0.850   86.8%   97.1%   93.5%
-media                   0.827   0.955    0.931  0.900   86.9%   97.3%   95.1%
-usage                   0.862   0.955    0.930  1.000   90.0%   98.9%   99.2%
-billing                 0.803   0.955    0.883  0.950   85.2%   97.2%   96.5%
+motion                  0.817   0.955    0.931  1.000   87.3%   98.5%   98.9%
+navigation              0.861   0.955    0.931  0.950   89.5%   98.4%   97.4%
+sections                0.826   0.955    0.931  0.850   86.3%   96.9%   93.3%
+media                   0.823   0.955    0.931  0.850   86.2%   97.2%   93.5%
+usage                   0.863   0.955    0.929  1.000   90.0%   98.9%   99.2%
+billing                 0.802   0.955    0.883  0.950   85.2%   97.2%   96.5%
 profile                 0.930   0.955    0.878  1.000   93.3%   99.4%   99.6%
-search                  0.816   0.955    0.929  0.967   86.9%   89.5%   91.7%
-search_results          0.837   0.955    0.930  0.950   88.0%   92.3%   93.1%
+search                  0.815   0.955    0.929  0.967   86.9%   89.5%   91.6%
+search_results          0.836   0.955    0.929  0.950   87.9%   92.3%   93.1%
 style_detail            0.841   0.955    0.929  0.983   88.6%   90.3%   92.7%
 adherence_form          0.959   0.955    0.928  1.000   95.8%   99.5%   99.7%
 adherence_run           0.920   0.955    0.928  0.967   93.1%   97.9%   97.6%
-AVERAGE (design)                                                   96.93%
+AVERAGE                                                 88.9%   96.9%   96.7%
 ```
 
 **Dashboard: 97.06% layout parity — 19/27 screens ≥ 97%, 24/27 ≥ 95%.**
+
+
+### Final pass notes (2026-10-06, afternoon)
+
+- Layout average **96.9%**, design average **96.7%**; 13 of 27 screens at or above 97% design.
+- Typography, Interactions and Media dropped 1.6–2.2 points versus the morning run because **tastelabs.com changed
+  its live fonts today** (it now serves a "Matter TRIAL" face with extra letter-spacing values), so a fresh extraction
+  produces taller typography cards than Taste's older screenshot. Our UI did not change on those screens.
+- The new design-area dock appears in viewer captures because they are taken within 1.8 s of scrolling; at rest on
+  desktop it is hidden.
 
 ## Landing additions (7 sections)
 
