@@ -1,0 +1,20 @@
+# Never upload local secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+**/.clerk
+
+# Local build output, caches and data
+**/node_modules
+**/.next
+**/.turbo
+storage
+**/storage
+.claude
+
+# QA artifacts and eval reports (not needed at runtime)
+qa
+**/evals/*.json

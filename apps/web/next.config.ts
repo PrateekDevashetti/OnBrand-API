@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@onbrand/core"],
   serverExternalPackages: ["playwright-core", "postgres", "cheerio"],
   outputFileTracingRoot: path.join(__dirname, "../.."),
+  // playwright-core reads browsers.json/package.json at require time; the tracer misses them.
+  outputFileTracingIncludes: { "/**": ["../../node_modules/playwright-core/**/*"] },
   images: { unoptimized: true },
   devIndicators: false,
   async headers() {
