@@ -18,6 +18,7 @@ export function ExtractForm() {
   async function submit(target?: string) {
     const u = (target ?? url).trim();
     if (!u) return setError("Paste a URL to extract");
+    if (!/^(https?:\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#].*)?$/i.test(u)) return setError("Enter a website address, like stripe.com or https://linear.app");
     setBusy(true);
     setError("");
     const res = await fetch("/api/v1/extract", {

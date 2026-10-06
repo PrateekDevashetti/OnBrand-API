@@ -1,6 +1,6 @@
 import { customAlphabet } from "nanoid";
 import crypto from "node:crypto";
-import { assertSafeUrlShape } from "./engine/netguard";
+import { assertSafeUrlShape, UnsafeUrlError } from "./engine/netguard";
 
 const alpha = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 16);
 
@@ -12,9 +12,14 @@ export function sha256(s: string) {
 
 export function normalizeUrl(input: string): { url: string; normalized: string; domain: string } {
   let raw = input.trim();
+  if (raw.length > 2048) throw new UnsafeUrlError("URL is too long (max 2048 characters)");
   if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
   const u = assertSafeUrlShape(raw);
   u.hash = "";
+  // Tracking params don't change a page's design; dropping them keeps one cache entry per page.
+  for (const k of [...u.searchParams.keys()]) {
+    if (/^(utm_|mc_|_hs|hsa_)|^(fbclid|gclid|dclid|msclkid|yclid|igshid|ref|ref_src|_ga|_gl)$/i.test(k)) u.searchParams.delete(k);
+  }
   const domain = u.hostname.replace(/^www\./, "");
   const pathname = u.pathname.replace(/\/+$/, "") || "/";
   const normalized = `${domain}${pathname === "/" ? "" : pathname}${u.search}`.toLowerCase();
