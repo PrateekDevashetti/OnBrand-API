@@ -76,10 +76,13 @@ const PROBE = `(() => {
     }
   }
   const inter = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  // Content scrolling under an opaque fixed/sticky bar is hidden by it, not an overlap.
+  const opaqueBar = (el) => { for (let n = el; n && n !== document.body; n = n.parentElement) { const s = getComputedStyle(n); if ((s.position === 'sticky' || s.position === 'fixed')) { const m = s.backgroundColor.match(/rgba?\(([^)]+)\)/); const al = m ? (m[1].split(',')[3] ?? '1') : '0'; return parseFloat(al) >= 0.99; } } return false; };
   const overlaps = [];
   for (let i = 0; i < texts.length && overlaps.length < 40; i++) for (let j = i + 1; j < texts.length; j++) {
     const A = texts[i], B = texts[j];
     if (A.el === B.el || A.el.contains(B.el) || B.el.contains(A.el)) continue;
+    if (opaqueBar(A.el) !== opaqueBar(B.el)) continue;
     const a = inter(A.b, B.b); const small = Math.min(A.b.width * A.b.height, B.b.width * B.b.height);
     if (a > 30 && a / small > 0.2) overlaps.push(desc(A.el) + '  ⟷  ' + desc(B.el) + ' @' + Math.round(A.b.left) + ',' + Math.round(A.b.top));
   }

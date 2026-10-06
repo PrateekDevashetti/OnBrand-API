@@ -387,7 +387,7 @@ function TypeCard({ t, fonts }: { t: TypeStyle; fonts?: BrandSystem["typography"
       <div className="mt-[14px] text-[11px] text-mute">Font Stack</div>
       <div className="mt-[8px] rounded-[4px] bg-[#222] px-[12px] py-[11px] font-mono text-[12px] text-dim">{t.stack}</div>
       {dl ? (
-        <a href={dl} target="_blank" rel="noreferrer" className="mt-[14px] inline-flex items-center gap-[7px] text-[12.5px] text-dim hover:text-cream">
+        <a href={dl} target="_blank" rel="noreferrer" className="hit mt-[14px] inline-flex items-center gap-[7px] text-[12.5px] text-dim hover:text-cream">
           <DownloadIcon /> Download Font
         </a>
       ) : null}
@@ -607,6 +607,38 @@ function parseCss(css: string): React.CSSProperties {
   return out as React.CSSProperties;
 }
 
+
+function rgbOf(c?: unknown): [number, number, number, number] | null {
+  if (typeof c !== "string") return null;
+  const s = c.trim().toLowerCase();
+  const hex = s.match(/^#([0-9a-f]{3,8})$/);
+  if (hex) {
+    let h = hex[1];
+    if (h.length <= 4) h = [...h].map((x) => x + x).join("");
+    const n = (i: number) => parseInt(h.slice(i, i + 2), 16);
+    return [n(0), n(2), n(4), h.length === 8 ? n(6) / 255 : 1];
+  }
+  const m = s.match(/rgba?\(([^)]+)\)/);
+  if (m) {
+    const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number);
+    return [p[0], p[1], p[2], p[3] ?? 1];
+  }
+  if (s === "white") return [255, 255, 255, 1];
+  return null;
+}
+function isLightText(c?: unknown) {
+  const v = rgbOf(c);
+  return !!v && (0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]) / 255 > 0.75;
+}
+function hasFill(c?: unknown) {
+  if (typeof c !== "string") return false;
+  if (/gradient|url\(/i.test(c)) return true;
+  const col = c.match(/rgba?\([^)]*\)|#[0-9a-f]{3,8}\b/i)?.[0];
+  if (!col) return false;
+  const v = rgbOf(col);
+  return v ? v[3] > 0.1 : false;
+}
+
 export function InteractionsSection({ brand }: { brand: Partial<BrandSystem> }) {
   const it = brand.interactions;
   if (!it) return <Pending />;
@@ -618,6 +650,8 @@ export function InteractionsSection({ brand }: { brand: Partial<BrandSystem> }) 
           it.buttons.map((b, i) => {
             const def = parseCss(b.defaultCss);
             const hov = { ...def, ...parseCss(b.hoverCss) };
+            // Light text with no fill was designed for a dark surface; give it one so the cream stage doesn't hide it.
+            for (const st of [def, hov]) if (isLightText(st.color) && !hasFill(st.backgroundColor ?? st.background)) st.backgroundColor = "#1e1e1e";
             // Previews always render on the cream stage, exactly as measured (light outline buttons read on hover).
             const darkStage = false;
             return (

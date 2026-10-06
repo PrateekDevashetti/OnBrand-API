@@ -23,6 +23,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return clerkOn ? (
     <ClerkProvider
       appearance={{ variables: { colorPrimary: "#f3f6f0", colorBackground: "#1c1c1c", borderRadius: "6px", fontFamily: "var(--font-dm-sans)" } }}
+      localization={{
+        signIn: { start: { title: "Sign in to OnBrand", subtitle: "Welcome back. Sign in to keep your agents on brand." } },
+        signUp: { start: { title: "Create your OnBrand account", subtitle: "20 free credits. No card needed." } },
+      }}
     >
       {body}
     </ClerkProvider>

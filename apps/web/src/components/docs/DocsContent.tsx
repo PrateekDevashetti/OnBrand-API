@@ -236,7 +236,7 @@ curl -s "${A}/extract/$ID/result?sections=colors,typography" -H 'X-API-Key: YOUR
               <div key={e.path} className="mt-[30px] rounded-[10px] bg-card px-[24px] py-[22px]">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className={`rounded-[3px] px-[7px] py-[2px] font-mono text-[11px] ${e.method === "GET" ? "bg-[#17331f] text-ok" : "bg-[#1b2c40] text-[#7fb6ff]"}`}>{e.method}</span>
-                  <code className="font-mono text-[14px] text-cream">{e.path}</code>
+                  <code className="min-w-0 break-all font-mono text-[14px] text-cream">{e.path}</code>
                   <span className="ml-auto text-[11.5px] text-mute">{e.credits}</span>
                 </div>
                 <p className="mt-3 text-[13.5px] leading-[1.55] text-dim">{e.desc}</p>
