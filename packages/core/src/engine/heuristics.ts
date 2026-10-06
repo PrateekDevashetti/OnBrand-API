@@ -294,6 +294,70 @@ function describeKeyframe(name: string) {
   return "Custom keyframe animation";
 }
 
+
+const SECTION_KEYWORDS: [RegExp, string][] = [
+  [/pricing|plans?\b|per month/i, "Pricing"],
+  [/faq|frequently asked|questions/i, "FAQ"],
+  [/careers?|join (us|our)|open (roles|positions)|we.?re hiring/i, "Careers"],
+  [/team|people|who we are/i, "Team"],
+  [/blog|articles?|news|research|insights/i, "Blog / Articles"],
+  [/testimonial|customers? say|loved by|trusted by|case stud/i, "Social proof"],
+  [/mission|manifesto|our story|about/i, "Mission / About"],
+  [/features?|how it works|capabilit|products?\b/i, "Features"],
+  [/contact|get in touch|talk to/i, "Contact"],
+  [/newsletter|subscribe/i, "Newsletter"],
+];
+
+function sectionName(x: SectionSignal, i: number) {
+  if (x.tag === "footer") return "Footer";
+  if (i === 0) return "Hero";
+  for (const [re, name] of SECTION_KEYWORDS) if (re.test(x.headline)) return name;
+  const body = x.text.slice(0, 300);
+  for (const [re, name] of SECTION_KEYWORDS) if (/Pricing|FAQ|Newsletter/.test(name) && re.test(body)) return name;
+  if ((x.counts.img ?? 0) > 6 || (x.counts.canvas ?? 0) > 0) return i === 1 ? "Hero Secondary / Gallery" : "Gallery";
+  if ((x.counts.input ?? 0) > 0) return "Form";
+  if (x.headline) {
+    const words = x.headline.split(/\s+/).slice(0, 5).join(" ");
+    return words.length < x.headline.length ? `${words}…` : words;
+  }
+  return (x.counts.img ?? 0) > 1 ? "Showcase" : "Content block";
+}
+
+function componentOf(k: string, n: number) {
+  const plural = (w: string) => `${n} ${w}${n > 1 ? "s" : ""}`;
+  switch (k) {
+    case "img": return { name: n >= 6 ? "Image grid" : "Image", description: n >= 6 ? `${plural("image")} arranged as a grid or carousel` : `${plural("image")} supporting the copy` };
+    case "svg": return { name: "Icon", description: `${plural("vector icon")} used as inline accents` };
+    case "video": return { name: "Video", description: n > 1 ? `${plural("video")} (loops or embedded players)` : "Looping or embedded video" };
+    case "button": return { name: "Button", description: `${plural("button")} for primary actions` };
+    case "a": case "link": return { name: "Link", description: `${plural("text link")} for navigation` };
+    case "input": return { name: "Input", description: `${plural("form field")} for user input` };
+    case "form": return { name: "Form", description: `${plural("form")} capturing user details` };
+    case "canvas": return { name: "Canvas", description: "Interactive canvas / WebGL element" };
+    default: return { name: k.charAt(0).toUpperCase() + k.slice(1), description: `${n} ${k} element${n > 1 ? "s" : ""}` };
+  }
+}
+
+const HASHY = /^[0-9a-f_-]{16,}$|[0-9a-f]{20,}/i;
+function mediaEntry(m: PageSignals["media"][number], logoSrc?: string) {
+  const file = decodeURIComponent(m.src.split("/").pop()?.split("?")[0] ?? "asset");
+  const stem = file.replace(/\.[a-z0-9]+$/i, "");
+  const readable = !HASHY.test(stem) && /[a-z]{3,}/i.test(stem);
+  const kind = (m.kind === "video" ? "video" : m.kind === "illustration" ? "illustration" : "image") as "video" | "image" | "illustration";
+  const size = m.w && m.h ? ` (${Math.round(m.w)}×${Math.round(m.h)})` : "";
+  const isLogo = !!logoSrc && m.src === logoSrc;
+  const role = isLogo
+    ? "Logo"
+    : kind === "video"
+      ? m.w >= 900 ? "Hero background video" : "Inline video"
+      : kind === "illustration"
+        ? m.w && m.w <= 64 ? "Icon" : "Vector illustration"
+        : m.w >= 900 ? "Full-width image" : m.w && m.w <= 64 ? "Small image / icon" : "Image";
+  const name = m.alt ? m.alt.slice(0, 90) : readable ? file.slice(0, 70) : `${role}${size}`;
+  const description = m.alt && readable ? `${role} · ${file.slice(0, 60)}` : m.alt ? role : readable ? `${role}${size}` : kind === "video" ? "Looping background video" : `${role} used on the page`;
+  return { name, description, kind, url: m.src };
+}
+
 function sectionLayout(x: SectionSignal, i: number) {
   if (i === 0 && x.counts.video) return "Centered with background video";
   if (x.counts.video) return "Full-bleed video";
@@ -526,20 +590,34 @@ export function heuristicGroup(key: GroupKey, capture: Capture, d: Digest): unkn
       };
     }
     case "sections": {
+      const navSection = s.nav
+        ? [
+            {
+              name: "Navigation",
+              layout: s.logo && s.nav.links.length && s.buttons.some((b) => b.top < 120) ? "Horizontal split 3-column" : s.nav.links.length ? "Horizontal bar" : "Minimal bar",
+              headline: "",
+              components: [
+                s.logo ? { name: "Logo", description: `${s.logo.kind === "svg" ? "Vector" : "Image"} logo${s.logo.alt ? ` (“${s.logo.alt.slice(0, 30)}”)` : ""}, left-aligned` } : null,
+                s.nav.links.length ? { name: "Navigation", description: `Horizontal nav links: ${[...new Set(s.nav.links.map((l) => l.trim()).filter(Boolean))].slice(0, 6).join(", ")}` } : null,
+                ...s.buttons.filter((b) => b.top < 120 && b.text).slice(0, 1).map((b) => ({ name: "Button", description: `Header call to action “${b.text.slice(0, 32)}”` })),
+              ].filter((c): c is { name: string; description: string } => !!c),
+            },
+          ]
+        : [];
       return {
-        sections: s.sections.map((x, i) => ({
-          name: x.tag === "footer" ? "Footer" : i === 0 ? "Hero" : x.headline ? x.headline.slice(0, 48) : `Section ${i + 1}`,
-          layout: sectionLayout(x, i),
-          headline: x.headline,
-          components: Object.entries(x.counts)
-            .filter(([, n]) => n > 0)
-            .slice(0, 6)
-            .map(([k, n]) => ({ name: k === "img" ? "Image" : k === "svg" ? "Icon" : k.charAt(0).toUpperCase() + k.slice(1), description: `${n} ${k === "img" ? "image" : k}${n > 1 ? "s" : ""} in this section` })),
-        })),
-        media: s.media.slice(0, 24).map((m) => {
-          const file = m.src.split("/").pop()?.split("?")[0] ?? "asset";
-          return { name: m.alt || decodeURIComponent(file).slice(0, 60), description: m.kind === "video" ? "Background / inline video" : m.alt ? `Image: ${m.alt}` : m.kind === "illustration" ? "Vector illustration" : "Image asset", kind: (m.kind === "video" ? "video" : m.kind === "illustration" ? "illustration" : "image") as "video" | "image" | "illustration", url: m.src };
-        }),
+        sections: [
+          ...navSection,
+          ...s.sections.map((x, i) => ({
+            name: sectionName(x, i),
+            layout: sectionLayout(x, i),
+            headline: x.headline,
+            components: Object.entries(x.counts)
+              .filter(([, n]) => n > 0)
+              .slice(0, 6)
+              .map(([k, n]) => componentOf(k, n)),
+          })),
+        ],
+        media: s.media.slice(0, 24).map((m) => mediaEntry(m, s.logo?.src)),
       };
     }
   }
