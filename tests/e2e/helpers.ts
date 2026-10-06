@@ -65,6 +65,9 @@ export async function openApp(browser: Browserish, path = "/app") {
   await browser.locator('button').filter({ hasText: /^\s*Continue\s*$/ }).first().click(); // exact label: skips "Continue with Google"
   await browser.waitForURL(/(client-trust|factor-two|\/app)/, { timeout: 30_000 });
   if (/client-trust|factor-two/.test(await browser.url())) {
+    // After repeated sign-ins Clerk may not auto-send the new-device code; ask for one first.
+    const resend = browser.locator('button:has-text("Resend")').first();
+    if (await resend.isVisible().catch(() => false)) await resend.click().catch(() => {});
     await browser.locator("input").first().click();
     await browser.keyboard.type("424242"); // Clerk test-mode code for +clerk_test addresses
   }

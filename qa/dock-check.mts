@@ -1,0 +1,24 @@
+/** Verifies the design-area dock: shows while scrolling on desktop, hides when idle, always present on phones. */
+import { chromium } from "playwright-core";
+import { resolveChromium } from "../packages/core/src/engine/browser";
+const id = process.argv[2];
+const b = await chromium.launch({ executablePath: resolveChromium(), headless: true });
+const count = (p: any) => p.locator('nav[aria-label="Design areas"]').count();
+const d = await b.newPage({ viewport: { width: 1440, height: 900 } });
+await d.goto(`http://localhost:3100/app/extractions/${id}`, { waitUntil: "load" });
+await d.waitForSelector("#sec-colors"); await d.evaluate(() => document.getElementById("sec-colors")?.scrollIntoView({ block: "start" }));
+await d.waitForTimeout(400);
+const whileScrolling = await count(d);
+await d.locator('nav[aria-label="Design areas"] button').nth(1).click();
+await d.waitForTimeout(1200);
+const jumped = await d.evaluate(() => Math.round(document.getElementById("sec-typography")!.getBoundingClientRect().top));
+await d.mouse.move(700, 200);
+await d.waitForTimeout(2600);
+const idle = await count(d);
+const m = await b.newPage({ viewport: { width: 390, height: 844 } });
+await m.goto(`http://localhost:3100/app/extractions/${id}`, { waitUntil: "load" });
+await m.evaluate(() => document.getElementById("sec-colors")?.scrollIntoView({ block: "start" }));
+await m.waitForTimeout(3000);
+console.log("phone active:", await m.evaluate(() => [Math.round(document.getElementById("sec-colors")!.getBoundingClientRect().top), document.getElementById("panel")?.scrollTop, getComputedStyle(document.getElementById("panel")!).overflowY]));
+console.log(JSON.stringify({ desktopWhileScrolling: whileScrolling, typographyTopAfterClick: jumped, desktopAfterIdle: idle, phoneAfterIdle: await count(m) }));
+await b.close();

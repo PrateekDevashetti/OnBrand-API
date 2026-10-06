@@ -32,9 +32,40 @@ function useNarrow() {
   return narrow;
 }
 
+/**
+ * Desktop already has the sidebar sub-menu, so there the dock only appears while the reader scrolls
+ * (or hovers it) and fades after a short idle. Below 1024px it is the only design-area navigator: always shown.
+ */
+function useScrollPresence(idleMs = 1800) {
+  const [desktop, setDesktop] = useState(false);
+  const [recent, setRecent] = useState(false);
+  const [hover, setHover] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const on = () => setDesktop(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      setRecent(true);
+      clearTimeout(t);
+      t = setTimeout(() => setRecent(false), idleMs);
+    };
+    // Capture phase on document sees scrolls of the viewer panel even if it mounts after the dock.
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => {
+      mq.removeEventListener("change", on);
+      document.removeEventListener("scroll", onScroll, { capture: true });
+      clearTimeout(t);
+    };
+  }, [idleMs]);
+  return { show: !desktop || recent || hover, setHover };
+}
+
 /** Floating magnetic dock for jumping between design areas. Shown while the reader is inside them. */
 export function DesignDock({ active, visible, onJump }: { active: string; visible: boolean; onJump: (key: string) => void }) {
   const narrow = useNarrow();
+  const { show, setHover } = useScrollPresence();
   const items: DockItemData[] = AREAS.map((a) => ({
     id: a.key,
     label: a.label,
@@ -48,7 +79,7 @@ export function DesignDock({ active, visible, onJump }: { active: string; visibl
   }));
   return (
     <AnimatePresence>
-      {visible && (
+      {visible && show && (
         <motion.nav
           aria-label="Design areas"
           initial={{ opacity: 0, y: 16 }}
@@ -57,6 +88,7 @@ export function DesignDock({ active, visible, onJump }: { active: string; visibl
           transition={{ duration: 0.22, ease: "easeOut" }}
           className="dark pointer-events-none absolute inset-x-0 bottom-[18px] z-30 flex justify-center"
         >
+          <div className="pointer-events-auto" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
           <MagneticDock
             items={items}
             iconSize={narrow ? 24 : 32}
@@ -65,6 +97,7 @@ export function DesignDock({ active, visible, onJump }: { active: string; visibl
             showLabels={!narrow}
             className="pointer-events-auto gap-[6px] rounded-[18px] border-[#3a3a39] bg-[#1b1b1b]/85 p-[8px] max-sm:gap-[4px] max-sm:p-[6px]"
           />
+          </div>
         </motion.nav>
       )}
     </AnimatePresence>
