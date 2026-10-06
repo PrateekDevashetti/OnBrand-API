@@ -4,7 +4,7 @@
  * and exposes /health for the platform.
  */
 import http from "node:http";
-import { claimJob, finishJob, runExtraction, runAdherence, browserAvailable, reapStaleExtractions } from "@onbrand/core";
+import { claimJob, finishJob, runExtraction, runAdherence, browserAvailable, reapStaleExtractions, pruneRequestLogs } from "@onbrand/core";
 
 const CONCURRENCY = Number(process.env.WORKER_CONCURRENCY ?? 3);
 let running = 0;
@@ -67,3 +67,11 @@ setInterval(() => {
     .then((n) => n && console.log(`[worker] reaped ${n} stale extraction(s)`))
     .catch((e) => console.error("[worker] reaper failed", (e as Error).message));
 }, 60_000).unref();
+
+// Keep the request log bounded: prune entries past the retention window once a day (and once at boot).
+const prune = () =>
+  pruneRequestLogs()
+    .then((n) => n && console.log(`[worker] pruned ${n} old request log(s)`))
+    .catch((e) => console.error("[worker] prune failed", (e as Error).message));
+setTimeout(prune, 30_000).unref();
+setInterval(prune, 86_400_000).unref();

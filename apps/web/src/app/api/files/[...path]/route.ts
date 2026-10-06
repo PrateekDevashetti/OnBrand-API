@@ -12,7 +12,11 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
   return new Response(new Uint8Array(body), {
     headers: {
       "Content-Type": TYPES[ext] ?? "application/octet-stream",
-      "Cache-Control": "public, max-age=31536000, immutable",
+      // Keys are content-addressed per run, so they never change: cache in browsers and on Vercel's CDN.
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
+      // Stored files come from crawled sites: never let them run script or be sniffed as HTML on our origin.
+      "Content-Security-Policy": "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox",
+      "X-Content-Type-Options": "nosniff",
       ...(download ? { "Content-Disposition": `attachment; filename="${key.split("/").pop()}"` } : {}),
     },
   });

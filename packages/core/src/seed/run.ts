@@ -50,7 +50,7 @@ async function one(site: (typeof SEED_SITES)[number]) {
     const typography = fonts.length <= 1 ? `single-typeface · ${fonts[0]?.family ?? "system"}` : `${fonts.slice(0, 2).map((f) => f.family).join(" + ")}`;
     const bgFam = [...fams].sort((a, b) => b.role.bg - a.role.bg)[0];
     const mode = bgFam && bgFam.lightness < 45 ? "dark" : "light";
-    const shotKey = cap.hero ? await putObject(`index/${domain}.jpg`, cap.hero) : null;
+    const shotKey = cap.hero ? await putObject(`index/${domain}-${Date.now().toString(36)}.jpg`, cap.hero) /* versioned: files are CDN-cached as immutable */ : null;
     const values = {
       domain,
       url: site.url,

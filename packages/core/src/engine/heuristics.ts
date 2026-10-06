@@ -157,6 +157,11 @@ function modeOf(fams: ColorFamily[], s?: PageSignals) {
   return dark > light ? "dark" : "light";
 }
 
+/** Light/dark mode measured from painted surfaces + the first viewport. Authoritative over any model guess. */
+export function measuredMode(capture: Capture): "dark" | "light" {
+  return modeOf(clusterColors(capture.signals), capture.signals) as "dark" | "light";
+}
+
 // ---------- identity ----------
 
 function features(s: PageSignals) {

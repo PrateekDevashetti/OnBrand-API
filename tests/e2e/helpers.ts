@@ -60,9 +60,9 @@ export async function openApp(browser: Browserish, path = "/app") {
   const email = process.env.E2E_EMAIL, password = process.env.E2E_PASSWORD;
   if (!email || !password) throw new Error("Target requires sign-in: set E2E_EMAIL and E2E_PASSWORD (a Clerk test user)");
   await browser.locator('input[name="identifier"]').fill(email);
-  await browser.locator('button:has-text("Continue")').first().click();
+  await browser.locator('button').filter({ hasText: /^\s*Continue\s*$/ }).first().click(); // exact label: skips "Continue with Google"
   await browser.locator('input[name="password"]').fill(password);
-  await browser.locator('button:has-text("Continue")').first().click();
+  await browser.locator('button').filter({ hasText: /^\s*Continue\s*$/ }).first().click(); // exact label: skips "Continue with Google"
   await browser.waitForURL(/(client-trust|factor-two|\/app)/, { timeout: 30_000 });
   if (/client-trust|factor-two/.test(await browser.url())) {
     await browser.locator("input").first().click();

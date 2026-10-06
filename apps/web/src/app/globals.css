@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* `dark:` follows a .dark ancestor (the app is always dark), not the OS theme. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
  * OnBrand design tokens — sampled from the reference UI, re-typeset in Canopy's

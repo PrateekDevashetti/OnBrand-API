@@ -116,6 +116,11 @@ async function runGroup<K extends GroupKey>(key: K, capture: Capture, d: ReturnT
         text: `Review pass. Here is a draft for this part of the brand system, plus the measured signals and screenshots. Correct any value that disagrees with the signals or screenshots, fill gaps that are clearly observable, tighten vague descriptions, and remove anything invented. Return the full corrected object.\n\nTask: ${GROUP_BRIEF[key]}\n\nDraft (JSON):\n${JSON.stringify(draft)}\n\nMeasured signals (JSON):\n${payload}`,
       });
     }
+    // Mode is measured, not judged: keep the model from overriding it (e.g. calling a dark site "mixed").
+    if (key === "identity") {
+      const id = (draft as { identity?: { mode?: string } }).identity;
+      if (id) id.mode = H.measuredMode(capture);
+    }
     return draft as GroupResult<K>;
   } catch (err) {
     console.error(`[onbrand] synth group ${key} failed, using heuristics:`, (err as Error).message);

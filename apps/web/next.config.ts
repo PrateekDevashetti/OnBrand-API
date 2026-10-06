@@ -12,6 +12,17 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Baseline hardening for every response. No script-src CSP here: Clerk loads its UI from its own origin.
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+        ],
+      },
+      {
         source: "/api/v1/:path*",
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },

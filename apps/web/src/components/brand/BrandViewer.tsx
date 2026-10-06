@@ -6,6 +6,7 @@ import type { BrandSystem } from "@onbrand/core/types";
 import { ArrowLeft, ShareIcon } from "../ui/icons";
 import { Coverflow } from "../Coverflow";
 import * as S from "./Sections";
+import { DesignDock, DESIGN_AREA_KEYS } from "./DesignDock";
 
 export type ViewerData = {
   id: string;
@@ -133,7 +134,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
             ),
           )}
         </nav>
-        <div id="panel" className="min-w-0 flex-1 space-y-[10px] overflow-y-auto pb-[18px]">
+        <div id="panel" className="min-w-0 flex-1 space-y-[10px] overflow-y-auto pb-[18px] max-lg:pb-[84px]">
           {running && (
             <div className="flex items-center gap-[12px] rounded-[2px] bg-[#222] px-[21px] py-[14px] font-mono text-[12px] text-dim">
               <span className="pulse-dot h-[7px] w-[7px] rounded-full bg-warn" />
@@ -181,6 +182,7 @@ export function BrandViewer({ initial, shared = false, backHref = "/app/extract"
         </div>
       </div>
       {toast && <div className="animate-in fixed right-8 bottom-8 z-50 rounded-[6px] bg-cream px-4 py-2.5 text-[13px] text-ink shadow-xl">{toast}</div>}
+      <DesignDock active={active} visible={DESIGN_AREA_KEYS.has(active)} onJump={go} />
     </div>
   );
 }
